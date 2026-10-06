@@ -1611,9 +1611,12 @@ RawComponentModelExportResult exportComponentModelsRaw(BoardState& state, const 
     params.m_UseDrillOrigin = true;
     params.m_Overwrite = true;
 
-    // OCCT's application, import settings and messenger are process-wide. Serialise exports,
-    // but never wait for this lock while holding the board lock. Declared before exporter so
-    // its OCCT objects are also destroyed before the export lock is released.
+    // OCCT's application, import settings and messenger are process-wide.  The component
+    // snapshot owns every board input, but constructing its model still reaches KiCad's
+    // process-wide services.  Keep the runtime lock until that work has completed: another
+    // board query can otherwise replace the active project between snapshotting and Export().
+    // Declared before exporter so its OCCT objects are also destroyed before the export lock is
+    // released.
     static std::mutex componentExportMutex;
     std::unique_lock<std::mutex> exportLock(componentExportMutex, std::defer_lock);
     WX_STRING_REPORTER reporter;
@@ -1622,8 +1625,6 @@ RawComponentModelExportResult exportComponentModelsRaw(BoardState& state, const 
         BoardLoadTiming snapshotTiming("Component export snapshot");
         exporter.PrepareComponentSnapshot();
     }
-    loaded.reset(); // releases the board lock and all references to the loaded context
-    board = nullptr;
     BoardLoadTiming exportWaitTiming("Component exporter lock wait");
     exportLock.lock();
     exportWaitTiming.end();
