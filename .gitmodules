@@ -2,3 +2,4 @@
 	path = submodules/kicad
 	url = https://gitlab.com/kicad/code/kicad.git
 	shallow = true
+	ignore = untracked
