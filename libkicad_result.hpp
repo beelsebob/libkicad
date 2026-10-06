@@ -232,7 +232,7 @@ struct BoardBounds {
 };
 
 /// One mesh triangle of a footprint's real, placed 3D model -- mirrors STEP_COMPONENT_TRIANGLE
-/// (libkicad/step_export/component_triangle.h). Vertex positions are absolute, in millimetres, in
+/// (step_export/component_triangle.h). Vertex positions are absolute, in millimetres, in
 /// the same board-auxiliary-origin-relative frame every other libkicad position (PadPosition,
 /// ThroughHole, ...) uses when `--use-drill-origin`/m_UseDrillOrigin is set, which
 /// exportComponentModels() always does. Color is straight from the model's own STEP colors
