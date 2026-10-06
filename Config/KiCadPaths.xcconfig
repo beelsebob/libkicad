@@ -1,0 +1,14 @@
+// Where libkicad finds KiCad (this repository's submodules/kicad, built into build/kicad by
+// Scripts/build_kicad.sh) and Homebrew. LIBKICAD_ROOT is this repository's root: libkicad's own
+// BuildPaths.xcconfig sets it to $(SRCROOT); a parent project including KiCadLink.xcconfig sets it
+// to wherever it checked libkicad out.
+//
+// Override any of these on the xcodebuild command line, in Xcode's build settings, or in an untracked
+// KiCadPaths.local.xcconfig alongside this file (Scripts/check_dependencies.py writes
+// HOMEBREW_PREFIX there).
+KICAD_SOURCE_ROOT = $(LIBKICAD_ROOT)/submodules/kicad
+KICAD_BUILD_ROOT = $(LIBKICAD_ROOT)/build/kicad
+KICAD_FRAMEWORK_ROOT = $(KICAD_BUILD_ROOT)/kicad/KiCad.app/Contents/Frameworks
+HOMEBREW_PREFIX = /opt/homebrew
+
+#include? "KiCadPaths.local.xcconfig"

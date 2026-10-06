@@ -1,2 +1,6 @@
+build/
 xcuserdata/
+__pycache__/
 .DS_Store
+/Config/KiCadPaths.local.xcconfig
+/Config/DependenciesChecked.generated.h

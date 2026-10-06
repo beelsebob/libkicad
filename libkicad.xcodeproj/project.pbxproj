@@ -1,0 +1,657 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXFileReference section */
+		4C1CAD000000000000000005 /* BuildPaths.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = BuildPaths.xcconfig; sourceTree = "<group>"; };
+		4C1CAD000000000000000008 /* DependencyCheck.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DependencyCheck.h; sourceTree = "<group>"; };
+		4C1CAD000000000000000007 /* KiCadLink.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KiCadLink.xcconfig; sourceTree = "<group>"; };
+		4C1CAD000000000000000006 /* KiCadPaths.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KiCadPaths.xcconfig; sourceTree = "<group>"; };
+		4C1CAD00000000000000000C /* liblibkicad.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblibkicad.a; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4C1CAD00000000000000000A /* Exceptions for "libkicad" folder in "libkicad" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			additionalCompilerFlagsByRelativePath = {
+				libkicad_api.cpp = "-std=c++23";
+			};
+			target = 4C1CAD00000000000000000B /* libkicad */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		4C1CAD000000000000000009 /* libkicad */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4C1CAD00000000000000000A /* Exceptions for "libkicad" folder in "libkicad" target */,
+			);
+			path = libkicad;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		4C1CAD00000000000000000E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4C1CAD000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				4C1CAD000000000000000004 /* Config */,
+				4C1CAD000000000000000009 /* libkicad */,
+				4C1CAD000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4C1CAD000000000000000004 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				4C1CAD000000000000000005 /* BuildPaths.xcconfig */,
+				4C1CAD000000000000000006 /* KiCadPaths.xcconfig */,
+				4C1CAD000000000000000007 /* KiCadLink.xcconfig */,
+				4C1CAD000000000000000008 /* DependencyCheck.h */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		4C1CAD000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C1CAD00000000000000000C /* liblibkicad.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4C1CAD00000000000000000B /* libkicad */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4C1CAD000000000000000012 /* Build configuration list for PBXNativeTarget "libkicad" */;
+			buildPhases = (
+				4C1CAD00000000000000000D /* Sources */,
+				4C1CAD00000000000000000E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4C1CAD000000000000000009 /* libkicad */,
+			);
+			name = libkicad;
+			productName = libkicad;
+			productReference = 4C1CAD00000000000000000C /* liblibkicad.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4C1CAD000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2660;
+			};
+			buildConfigurationList = 4C1CAD00000000000000000F /* Build configuration list for PBXProject "libkicad" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4C1CAD000000000000000002;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4C1CAD000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4C1CAD00000000000000000B /* libkicad */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4C1CAD00000000000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		4C1CAD000000000000000010 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C1CAD000000000000000005 /* BuildPaths.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_FLOAT_CONVERSION = YES_ERROR;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES_ERROR;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_SEMICOLON_BEFORE_METHOD_BODY = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = c23;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-documentation-deprecated-sync",
+				);
+			};
+			name = Debug;
+		};
+		4C1CAD000000000000000011 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 4C1CAD000000000000000005 /* BuildPaths.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++23";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_ASSIGN_ENUM = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_FLOAT_CONVERSION = YES_ERROR;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = YES_ERROR;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_SEMICOLON_BEFORE_METHOD_BODY = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = c23;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"NDEBUG=1",
+				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_PEDANTIC = YES;
+				GCC_WARN_SHADOW = YES;
+				GCC_WARN_SIGN_COMPARE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.5;
+				SDKROOT = macosx;
+				WARNING_CFLAGS = (
+					"$(inherited)",
+					"-Wno-documentation-deprecated-sync",
+				);
+			};
+			name = Release;
+		};
+		4C1CAD000000000000000013 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				CLANG_WARN_FLOAT_CONVERSION = NO;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = NO;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					BOOST_ATOMIC_DYN_LINK,
+					BOOST_ATOMIC_NO_LIB,
+					BOOST_CHARCONV_DYN_LINK,
+					BOOST_CHARCONV_NO_LIB,
+					BOOST_CHRONO_DYN_LINK,
+					BOOST_CHRONO_NO_LIB,
+					BOOST_CONTAINER_DYN_LINK,
+					BOOST_CONTAINER_NO_LIB,
+					BOOST_DATE_TIME_DYN_LINK,
+					BOOST_DATE_TIME_NO_LIB,
+					BOOST_LOCALE_DYN_LINK,
+					BOOST_LOCALE_NO_LIB,
+					BOOST_THREAD_DYN_LINK,
+					BOOST_THREAD_NO_LIB,
+					"BS_THREAD_POOL_NATIVE_EXTENSIONS=1",
+					GLM_FORCE_CTOR_INIT,
+					"GL_SILENCE_DEPRECATION=1",
+					HAVE_STDINT_H,
+					"JSON_HAS_FILESYSTEM=0",
+					"KIAPI_IMPORTEXPORT=APIIMPORT",
+					KICAD_BUILD_ARCH_ARM,
+					"KICAD_CONFIG_DIR=kicad",
+					KICAD_SIGNAL_INTEGRITY,
+					KICAD_UPDATE_CHECK,
+					NANODBC_ENABLE_UNICODE,
+					PCBNEW,
+					PROTOBUF_USE_DLLS,
+					USINGZ,
+					WXUSINGDLL,
+					"_FILE_OFFSET_BITS=64",
+					__WXMAC__,
+					__WXOSX_COCOA__,
+					__WXOSX__,
+					"wxDEBUG_LEVEL=0",
+					NDEBUG,
+				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_PEDANTIC = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/common",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/core",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kimath",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kinng",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kiplatform",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/sexpr",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/snap",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/3dxware_sdk",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/clipper2",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/delaunator",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/dxflib_qcad",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/fmt",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/glad",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/json_schema_validator",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/libcontext",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/nanodbc",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/nanosvg",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/planegcs",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/tinyspline_lib",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/zint",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-fstandalone-debug",
+					"-Wall",
+					"-Wsuggest-override",
+					"-Winconsistent-missing-override",
+					"-Werror=vla",
+					"-Wimplicit-fallthrough",
+					"-Werror=return-type",
+					"-Wshadow",
+					"-Wsign-compare",
+					"-Wmissing-field-initializers",
+					"-Wempty-body",
+					"-Wreorder",
+					"-Wmismatched-tags",
+					"-Wpessimizing-move",
+					"-Wredundant-move",
+					"-Wno-psabi",
+					"-fPIC",
+					"-fvisibility=hidden",
+					"-fvisibility-inlines-hidden",
+					"-ftrivial-auto-var-init=zero",
+					"-include",
+					"$(KICAD_SOURCE_ROOT)/api/../include/import_export.h",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/include",
+					"$(HOMEBREW_PREFIX)/include/cairo",
+					"$(HOMEBREW_PREFIX)/include/pixman-1",
+					/Library/Frameworks/Mono.framework/Headers,
+					"$(HOMEBREW_PREFIX)/include/freetype2",
+					"$(HOMEBREW_PREFIX)/opt/harfbuzz/include/harfbuzz",
+					"$(HOMEBREW_PREFIX)/opt/opencascade/include/opencascade",
+					"$(HOMEBREW_PREFIX)/lib/wx/include/osx_cocoa-unicode-3.2",
+					"$(HOMEBREW_PREFIX)/include/wx-3.2",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanodbc",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/eigen",
+					"$(KICAD_SOURCE_ROOT)/include",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/.",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./dialogs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./autorouter",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./generators",
+					"$(KICAD_SOURCE_ROOT)/3d-viewer",
+					"$(KICAD_SOURCE_ROOT)/3d-viewer/dialogs",
+					"$(KICAD_SOURCE_ROOT)/common",
+					"$(KICAD_SOURCE_ROOT)/common/dialogs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./exporters",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./importers",
+					"$(KICAD_SOURCE_ROOT)/utils/idftools",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./specctra_import_export",
+					"$(KICAD_BUILD_ROOT)",
+					"$(KICAD_BUILD_ROOT)/pcbnew",
+					"$(KICAD_SOURCE_ROOT)/common/.",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/argparse/include",
+					"$(KICAD_BUILD_ROOT)/api/./cpp",
+					"$(KICAD_BUILD_ROOT)/api/./cpp/api",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/pegtl",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/magic_enum/magic_enum",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/libcontext",
+					"$(KICAD_SOURCE_ROOT)/libs/kimath/include",
+					"$(KICAD_SOURCE_ROOT)/libs/core/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/clipper2/Clipper2Lib/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rtree",
+					"$(KICAD_SOURCE_ROOT)/libs/kinng/include",
+					"$(KICAD_SOURCE_ROOT)/libs/kiplatform/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nlohmann_json",
+					"$(KICAD_SOURCE_ROOT)/libs/snap/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/dynamic_bitset",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/libpopcnt",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/expected/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/picosha2",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/json_schema_validator",
+					"$(KICAD_BUILD_ROOT)/common",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/fast_float/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/fmt/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rapidcsv",
+					"$(KICAD_SOURCE_ROOT)/libs/sexpr/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/glad/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/thread-pool",
+					"$(KICAD_BUILD_ROOT)/include/gal/shaders",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanosvg",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/dxflib_qcad",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/tinyspline_lib",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/compoundfilereader",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rectpack2d",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/gzip-hpp",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanoflann",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/planegcs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/pcb_io/altium",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/3dxware_sdk/inc",
+					"$(inherited)",
+				);
+			};
+			name = Debug;
+		};
+		4C1CAD000000000000000014 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_WARN_DOCUMENTATION_COMMENTS = NO;
+				CLANG_WARN_FLOAT_CONVERSION = NO;
+				CLANG_WARN_IMPLICIT_SIGN_CONVERSION = NO;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = NO;
+				CLANG_WARN_SUSPICIOUS_IMPLICIT_CONVERSION = NO;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					BOOST_ATOMIC_DYN_LINK,
+					BOOST_ATOMIC_NO_LIB,
+					BOOST_CHARCONV_DYN_LINK,
+					BOOST_CHARCONV_NO_LIB,
+					BOOST_CHRONO_DYN_LINK,
+					BOOST_CHRONO_NO_LIB,
+					BOOST_CONTAINER_DYN_LINK,
+					BOOST_CONTAINER_NO_LIB,
+					BOOST_DATE_TIME_DYN_LINK,
+					BOOST_DATE_TIME_NO_LIB,
+					BOOST_LOCALE_DYN_LINK,
+					BOOST_LOCALE_NO_LIB,
+					BOOST_THREAD_DYN_LINK,
+					BOOST_THREAD_NO_LIB,
+					"BS_THREAD_POOL_NATIVE_EXTENSIONS=1",
+					GLM_FORCE_CTOR_INIT,
+					"GL_SILENCE_DEPRECATION=1",
+					HAVE_STDINT_H,
+					"JSON_HAS_FILESYSTEM=0",
+					"KIAPI_IMPORTEXPORT=APIIMPORT",
+					KICAD_BUILD_ARCH_ARM,
+					"KICAD_CONFIG_DIR=kicad",
+					KICAD_SIGNAL_INTEGRITY,
+					KICAD_UPDATE_CHECK,
+					NANODBC_ENABLE_UNICODE,
+					PCBNEW,
+					PROTOBUF_USE_DLLS,
+					USINGZ,
+					WXUSINGDLL,
+					"_FILE_OFFSET_BITS=64",
+					__WXMAC__,
+					__WXOSX_COCOA__,
+					__WXOSX__,
+					"wxDEBUG_LEVEL=0",
+					NDEBUG,
+				);
+				GCC_TREAT_WARNINGS_AS_ERRORS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = NO;
+				GCC_WARN_PEDANTIC = NO;
+				GCC_WARN_SHADOW = NO;
+				GCC_WARN_UNINITIALIZED_AUTOS = NO;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/common",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/core",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kimath",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kinng",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/kiplatform",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/sexpr",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/libs/snap",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/3dxware_sdk",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/clipper2",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/delaunator",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/dxflib_qcad",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/fmt",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/glad",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/json_schema_validator",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/libcontext",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/nanodbc",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/nanosvg",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/planegcs",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/tinyspline_lib",
+					"$(PROJECT_DIR)/submodules/libkicad/build/kicad/thirdparty/zint",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-fstandalone-debug",
+					"-Wall",
+					"-Wsuggest-override",
+					"-Winconsistent-missing-override",
+					"-Werror=vla",
+					"-Wimplicit-fallthrough",
+					"-Werror=return-type",
+					"-Wshadow",
+					"-Wsign-compare",
+					"-Wmissing-field-initializers",
+					"-Wempty-body",
+					"-Wreorder",
+					"-Wmismatched-tags",
+					"-Wpessimizing-move",
+					"-Wredundant-move",
+					"-Wno-psabi",
+					"-fPIC",
+					"-fvisibility=hidden",
+					"-fvisibility-inlines-hidden",
+					"-ftrivial-auto-var-init=zero",
+					"-include",
+					"$(KICAD_SOURCE_ROOT)/api/../include/import_export.h",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					"$(HOMEBREW_PREFIX)/include",
+					"$(HOMEBREW_PREFIX)/include/cairo",
+					"$(HOMEBREW_PREFIX)/include/pixman-1",
+					/Library/Frameworks/Mono.framework/Headers,
+					"$(HOMEBREW_PREFIX)/include/freetype2",
+					"$(HOMEBREW_PREFIX)/opt/harfbuzz/include/harfbuzz",
+					"$(HOMEBREW_PREFIX)/opt/opencascade/include/opencascade",
+					"$(HOMEBREW_PREFIX)/lib/wx/include/osx_cocoa-unicode-3.2",
+					"$(HOMEBREW_PREFIX)/include/wx-3.2",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanodbc",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/eigen",
+					"$(KICAD_SOURCE_ROOT)/include",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/.",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./dialogs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./autorouter",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./generators",
+					"$(KICAD_SOURCE_ROOT)/3d-viewer",
+					"$(KICAD_SOURCE_ROOT)/3d-viewer/dialogs",
+					"$(KICAD_SOURCE_ROOT)/common",
+					"$(KICAD_SOURCE_ROOT)/common/dialogs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./exporters",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./importers",
+					"$(KICAD_SOURCE_ROOT)/utils/idftools",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/./specctra_import_export",
+					"$(KICAD_BUILD_ROOT)",
+					"$(KICAD_BUILD_ROOT)/pcbnew",
+					"$(KICAD_SOURCE_ROOT)/common/.",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/argparse/include",
+					"$(KICAD_BUILD_ROOT)/api/./cpp",
+					"$(KICAD_BUILD_ROOT)/api/./cpp/api",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/pegtl",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/magic_enum/magic_enum",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/libcontext",
+					"$(KICAD_SOURCE_ROOT)/libs/kimath/include",
+					"$(KICAD_SOURCE_ROOT)/libs/core/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/clipper2/Clipper2Lib/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rtree",
+					"$(KICAD_SOURCE_ROOT)/libs/kinng/include",
+					"$(KICAD_SOURCE_ROOT)/libs/kiplatform/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nlohmann_json",
+					"$(KICAD_SOURCE_ROOT)/libs/snap/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/dynamic_bitset",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/libpopcnt",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/expected/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/picosha2",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/json_schema_validator",
+					"$(KICAD_BUILD_ROOT)/common",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/fast_float/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/fmt/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rapidcsv",
+					"$(KICAD_SOURCE_ROOT)/libs/sexpr/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/glad/include",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/thread-pool",
+					"$(KICAD_BUILD_ROOT)/include/gal/shaders",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanosvg",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/dxflib_qcad",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/tinyspline_lib",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/compoundfilereader",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/rectpack2d",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/gzip-hpp",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/nanoflann",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/planegcs",
+					"$(KICAD_SOURCE_ROOT)/pcbnew/pcb_io/altium",
+					"$(KICAD_SOURCE_ROOT)/thirdparty/3dxware_sdk/inc",
+					"$(inherited)",
+				);
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4C1CAD00000000000000000F /* Build configuration list for PBXProject "libkicad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C1CAD000000000000000010 /* Debug */,
+				4C1CAD000000000000000011 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4C1CAD000000000000000012 /* Build configuration list for PBXNativeTarget "libkicad" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4C1CAD000000000000000013 /* Debug */,
+				4C1CAD000000000000000014 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 4C1CAD000000000000000001 /* Project object */;
+}
