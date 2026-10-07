@@ -13,8 +13,10 @@
 // libkicad cares about (pads, footprints, zones) isn't stored on the generator itself.
 #include "libkicad_generators.hpp"
 
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#endif
 
 #include <generators_mgr.h>
 #include <pcb_generator.h>
@@ -60,7 +62,9 @@ GENERATORS_MGR::REGISTER<HeadlessTuningPattern> registerHeadlessTuningPattern;
 
 } // namespace
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 namespace libkicad::detail {
 

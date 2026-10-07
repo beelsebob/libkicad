@@ -18,8 +18,10 @@
 // KiCad and wx headers aren't built against this project's strict warning settings and aren't
 // ours to fix; silence their diagnostics for the includes and the rest of this file, since some
 // of their inline/template bodies are only checked where we actually use them below.
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#endif
 
 #include <wx/app.h>
 #include <wx/init.h>
@@ -67,7 +69,9 @@
 #include "step_export/exporter_step.h"
 #include <reporter.h>
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#endif
 
 namespace libkicad::detail {
 
@@ -90,6 +94,10 @@ struct BoardState {
         std::vector<LayerColor> layerColors;
         std::vector<BoardLayerInfo> layers;
     };
+
+    BoardState(RuntimeState& aRuntime, std::string aProjectPath, std::string aBoardPath)
+            : runtime(aRuntime), projectPath(std::move(aProjectPath)), boardPath(std::move(aBoardPath)) {}
+
     RuntimeState& runtime;
     std::string projectPath;
     std::string boardPath;
@@ -313,6 +321,13 @@ void _releaseUnusedProject(RuntimeState& runtime, PROJECT* project) {
     }
 }
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+// GCC 15 deprecates these portable C++20 shared_ptr atomic free functions before every libc++
+// implementation used by this project has std::atomic<std::shared_ptr<T>> support.
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
 void _unloadBoard(BoardState& state) {
     std::atomic_store_explicit(&state.simpleState, std::shared_ptr<const BoardState::SimpleState>{},
                                std::memory_order_release);
@@ -432,6 +447,10 @@ std::shared_ptr<const BoardState::SimpleState> _currentSimpleState(const BoardSt
     }
     return snapshot;
 }
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 // Shared board-loading sequence: SETTINGS_MANAGER project load, PCB_IO_KICAD_SEXPR board load,
 // HEADLESS_PCB_CONTEXT construction (this is what wires BOARD::SetProject(), needed before any
@@ -649,8 +668,7 @@ void destroyRuntimeRaw(RuntimeState* runtime) {
 }
 
 BoardState* createBoardRaw(RuntimeState& runtime, std::string projectPath, std::string boardPath) {
-    auto state = std::make_unique<BoardState>(BoardState{.runtime = runtime,
-        .projectPath = std::move(projectPath), .boardPath = std::move(boardPath)});
+    auto state = std::make_unique<BoardState>(runtime, std::move(projectPath), std::move(boardPath));
     // A Board is created because one of its read queries is imminent. Loading here lets the simple
     // immutable snapshot serve those metadata queries without competing for the runtime lock.
     // Preserve the API's deferred-error behavior: an unreadable board remains an object and its
@@ -1073,13 +1091,14 @@ RawZonesResult zonesRaw(BoardState& state) {
 
 RawBoardLayersResult boardLayersRaw(BoardState& state) {
     if (const auto snapshot = _currentSimpleState(state)) {
-        return RawBoardLayersResult{.ok = true, .layers = snapshot->layers};
+        return RawBoardLayersResult{.ok = true, .error = {}, .layers = snapshot->layers};
     }
     std::string error;
     std::optional<LoadedBoard> loaded = _loadBoard(state, error, "boardLayers");
     if (!loaded) return _failBoardLayers(std::move(error));
     const auto snapshot = _currentSimpleState(state);
-    return RawBoardLayersResult{.ok = true, .layers = snapshot ? snapshot->layers : _boardLayers(*loaded->board)};
+    return RawBoardLayersResult{.ok = true, .error = {},
+                                .layers = snapshot ? snapshot->layers : _boardLayers(*loaded->board)};
 }
 
 RawBoardLayerGeometryResult boardLayerGeometryRaw(BoardState& state, const std::string& layerName) {
@@ -1344,7 +1363,7 @@ RawBoardGeometryResult boardGeometryRaw(BoardState& state) {
 
 RawStackupResult stackupRaw(BoardState& state) {
     if (const auto snapshot = _currentSimpleState(state)) {
-        return RawStackupResult{.ok = true, .layers = snapshot->stackup};
+        return RawStackupResult{.ok = true, .error = {}, .layers = snapshot->stackup};
     }
     std::string error;
     std::optional<LoadedBoard> loaded = _loadBoard(state, error, "stackup");
@@ -1352,12 +1371,13 @@ RawStackupResult stackupRaw(BoardState& state) {
         return _failStackup(std::move(error));
     }
     const auto snapshot = _currentSimpleState(state);
-    return RawStackupResult{.ok = true, .layers = snapshot ? snapshot->stackup : _stackupLayers(*loaded->board)};
+    return RawStackupResult{.ok = true, .error = {},
+                            .layers = snapshot ? snapshot->stackup : _stackupLayers(*loaded->board)};
 }
 
 RawLayerColorsResult layerColorsRaw(BoardState& state) {
     if (const auto snapshot = _currentSimpleState(state)) {
-        return RawLayerColorsResult{.ok = true, .colors = snapshot->layerColors};
+        return RawLayerColorsResult{.ok = true, .error = {}, .colors = snapshot->layerColors};
     }
     std::string error;
     std::optional<LoadedBoard> loaded = _loadBoard(state, error, "layerColors");
@@ -1365,12 +1385,12 @@ RawLayerColorsResult layerColorsRaw(BoardState& state) {
         return _failLayerColors(std::move(error));
     }
     const auto snapshot = _currentSimpleState(state);
-    if (snapshot) return RawLayerColorsResult{.ok = true, .colors = snapshot->layerColors};
+    if (snapshot) return RawLayerColorsResult{.ok = true, .error = {}, .colors = snapshot->layerColors};
     // An unavailable color theme is still distinguishable from a board with no enabled layers.
     if (Pgm().GetSettingsManager().GetColorSettings(wxEmptyString) == nullptr) {
         return _failLayerColors("No PCB color theme available");
     }
-    return RawLayerColorsResult{.ok = true, .colors = _layerColors(*loaded->board)};
+    return RawLayerColorsResult{.ok = true, .error = {}, .colors = _layerColors(*loaded->board)};
 }
 
 RawNetColorsResult netColorsRaw(BoardState& state) {

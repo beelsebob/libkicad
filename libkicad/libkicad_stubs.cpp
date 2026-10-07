@@ -13,8 +13,13 @@
 // types in signatures, ...) with no clean boundary between "our code" and "KiCad's headers" to
 // scope diagnostics around, so the suppression covers the whole file rather than just the
 // includes.
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Weverything"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wempty-body"
+#endif
 
 #include <board_loader.h>
 #include <pcb_edit_frame.h>
@@ -407,4 +412,8 @@ KIFACE_BASE& Kiface() {
     return instance;
 }
 
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
