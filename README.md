@@ -72,7 +72,29 @@ It runs `Scripts/build_kicad.sh` when needed, which builds only the KiCad librar
 libkicad links into `build/kicad`. This is slow and is never run from Xcode; rerun the check after
 moving the KiCad submodule.
 
-Then build `libkicad.xcodeproj`.
+`libkicad` is built by CMake. The Xcode project remains as a convenient source
+navigator and a thin build target for projects that retain an Xcode workflow;
+its **libkicad** target invokes the same CMake build and writes `liblibkicad.a`
+to Xcode's built-products directory.
+
+On macOS, either build that target in Xcode or use a preset directly:
+
+```sh
+cmake --preset macos-debug
+cmake --build --preset macos-debug
+```
+
+The equivalent Linux presets are `linux-debug` and `linux-release`. They expect
+a matching KiCad source build at `build/kicad`; KiEMS' Linux dependency checker
+creates it automatically, or a standalone checkout can run
+`Scripts/build_kicad.sh` after installing its distribution dependencies.
+Override `KICAD_SOURCE_ROOT`, `KICAD_BUILD_ROOT`, and (when required)
+`LIBKICAD_DEPENDENCY_PREFIX` when configuring for a non-default layout.
+
+All C++ implementation files under `libkicad/` are discovered by CMake. Xcode's
+file-system-synchronised source group uses the same directory, so adding a new
+source file there from Xcode is picked up by both build systems on the next
+build.
 
 ## Using it from another project
 

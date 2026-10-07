@@ -1511,8 +1511,8 @@ RawThroughHolesResult throughHolesRaw(BoardState& state) {
     result.ok = true;
     const VECTOR2I auxOrigin = board->GetDesignSettings().GetAuxOrigin();
 
-    // Plain KiCad vias -- not tied to any footprint, always round (GetWidth() is the annular ring's
-    // own diameter, GetDrillValue() the hole's -- both single values, unlike a pad's separate X/Y).
+    // Plain KiCad vias -- not tied to any footprint, always round.  Modern KiCad stores their
+    // diameter in a layer-aware padstack, so explicitly request the shared all-layers value.
     for (PCB_TRACK* track : board->Tracks()) {
         if (track->Type() != PCB_VIA_T) {
             continue;
@@ -1525,7 +1525,7 @@ RawThroughHolesResult throughHolesRaw(BoardState& state) {
         // Y flip: see the identical comment in resolvePinRaw().
         hole.yMm = -pcbIUScale.IUTomm(position.y);
         hole.netName = via->GetNetname().ToStdString();
-        const double widthMm = pcbIUScale.IUTomm(via->GetWidth());
+        const double widthMm = pcbIUScale.IUTomm(via->GetWidth(PADSTACK::ALL_LAYERS));
         hole.padWidthMm = widthMm;
         hole.padHeightMm = widthMm;
         const double drillMm = pcbIUScale.IUTomm(via->GetDrillValue());

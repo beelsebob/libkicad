@@ -25,6 +25,9 @@
 #include <3d_cache/3d_cache.h>
 #include <3d_viewer/eda_3d_viewer_frame.h>
 #include <3d_viewer/eda_3d_viewer_settings.h>
+#if defined(__linux__) || defined(__FreeBSD__)
+#include <3d_spacenav/spnav_viewer_plugin.h>
+#endif
 #include <navlib/nl_pcbnew_plugin.h>
 #include <navlib/nl_pcbnew_plugin_impl.h>
 #include <3d_navlib/nl_3d_viewer_plugin.h>
@@ -253,6 +256,25 @@ EDA_3D_VIEWER_SETTINGS::EDA_3D_VIEWER_SETTINGS() : APP_SETTINGS_BASE("3d_viewer_
 bool EDA_3D_VIEWER_SETTINGS::MigrateFromLegacy(wxConfigBase*) {
     return false;
 }
+
+#if defined(__linux__) || defined(__FreeBSD__)
+// Linux's EDA_3D_VIEWER_FRAME owns this plug-in through a unique_ptr.  The headless wrapper does
+// not create a 3D viewer, but defining its key methods here makes the generated frame destructor
+// well-formed without linking KiCad's GUI-only 3D viewer target.
+SPNAV_VIEWER_PLUGIN::SPNAV_VIEWER_PLUGIN(EDA_3D_CANVAS*) {
+    _notImplemented("SPNAV_VIEWER_PLUGIN::SPNAV_VIEWER_PLUGIN");
+}
+
+SPNAV_VIEWER_PLUGIN::~SPNAV_VIEWER_PLUGIN() {}
+
+void SPNAV_VIEWER_PLUGIN::SetFocus(bool) {}
+
+void SPNAV_VIEWER_PLUGIN::OnPan(double, double, double) {}
+
+void SPNAV_VIEWER_PLUGIN::OnRotate(double, double, double) {}
+
+void SPNAV_VIEWER_PLUGIN::OnButton(int, bool) {}
+#endif
 
 NL_PCBNEW_PLUGIN::NL_PCBNEW_PLUGIN(PCB_DRAW_PANEL_GAL*) {
     _notImplemented("NL_PCBNEW_PLUGIN::NL_PCBNEW_PLUGIN");

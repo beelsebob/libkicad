@@ -76,27 +76,20 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXNativeTarget section */
+/* Begin PBXLegacyTarget section */
 		4C1CAD00000000000000000B /* libkicad */ = {
-			isa = PBXNativeTarget;
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "\"$(SRCROOT)/Scripts/build_with_cmake.sh\" \"$(CONFIGURATION)\" \"$(BUILT_PRODUCTS_DIR)\"";
 			buildConfigurationList = 4C1CAD000000000000000012 /* Build configuration list for PBXNativeTarget "libkicad" */;
-			buildPhases = (
-				4C1CAD00000000000000000D /* Sources */,
-				4C1CAD00000000000000000E /* Frameworks */,
-			);
-			buildRules = (
-			);
+			buildToolPath = /bin/sh;
+			buildWorkingDirectory = "$(SRCROOT)";
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				4C1CAD000000000000000009 /* libkicad */,
-			);
 			name = libkicad;
+			passBuildSettingsInEnvironment = 1;
 			productName = libkicad;
-			productReference = 4C1CAD00000000000000000C /* liblibkicad.a */;
-			productType = "com.apple.product-type.library.static";
 		};
-/* End PBXNativeTarget section */
+/* End PBXLegacyTarget section */
 
 /* Begin PBXProject section */
 		4C1CAD000000000000000001 /* Project object */ = {
