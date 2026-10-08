@@ -20,6 +20,14 @@ OTHER_LDFLAGS = $(inherited) \
     $(KICAD_BUILD_ROOT)/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/api_handler_board.cpp.o \
     $(KICAD_BUILD_ROOT)/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/headless_pcb_context.cpp.o \
     $(KICAD_BUILD_ROOT)/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/pcb_context.cpp.o \
+    $(KICAD_BUILD_ROOT)/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/board_stackup_manager/stackup_predefined_prms.cpp.o \
+    $(KICAD_BUILD_ROOT)/eeschema/libeeschema_kiface_objects.a \
+    $(KICAD_BUILD_ROOT)/eeschema/navlib/libeeschema_navlib.a \
+    $(KICAD_BUILD_ROOT)/common/io/pads/libpads_common.a \
+    $(KICAD_BUILD_ROOT)/thirdparty/libwmf/liblibwmf_orcad.a \
+    $(KICAD_BUILD_ROOT)/thirdparty/nanodbc/libnanodbc.a \
+    $(KICAD_BUILD_ROOT)/thirdparty/tinyspline_lib/libtinyspline_lib.a \
+    $(KICAD_BUILD_ROOT)/libs/snap/libsnap.a \
     $(KICAD_BUILD_ROOT)/common/libpcbcommon.a \
     $(KICAD_BUILD_ROOT)/libs/kiplatform/libkiplatform.a \
     $(KICAD_BUILD_ROOT)/common/libcommon.a \

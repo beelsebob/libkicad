@@ -175,8 +175,9 @@ struct PolygonLoop {
 struct CopperPolygon {
     std::string netName;
     std::string copperLayerName;
-    /// True when this polygon came from a filled zone rather than a track or pad. Consumers use
-    /// this distinction only for display opacity; it remains ordinary copper geometry.
+    /// True when this polygon came from a filled zone (pour) rather than a track or pad. Teardrops
+    /// are zones in KiCad but count as tracks here. Consumers use this distinction only for display
+    /// opacity and stitching-via placement; it remains ordinary copper geometry.
     bool zone = false;
     /// Populated only when this contour came from a footprint pad. Together these preserve the
     /// physical pin identity through the whole-board triangulation path; tracks/vias and zones
@@ -268,6 +269,70 @@ struct ComponentModelExportResult {
     /// caller's own "height above the top-copper surface," ready to add onto that convention's own
     /// Z=0 directly.
     double topCopperZMm = 0;
+};
+
+/// One terminal of a ComponentSimElement. Pin nodes name the footprint pad (the schematic pin
+/// number, mapped through the symbol's Sim.Pins), so callers resolve their nets with the board's
+/// own pad data. Internal nodes exist only inside the component's model; their names are unique
+/// within one ComponentSimModel but mean nothing outside it.
+struct ComponentSimNode {
+    enum class Kind {
+        Pin,
+        Ground, // SPICE node 0
+        Internal,
+    };
+    Kind kind = Kind::Internal;
+    std::string name;
+};
+
+/// One primitive SPICE element of a component's model, after every subcircuit instance has been
+/// expanded. `kind` is the upper-case SPICE element letter ('R', 'C', 'L', 'D', 'Q', 'K', ...).
+/// 'X' only remains for a subcircuit instance that couldn't be expanded (its definition wasn't
+/// found, or it isn't a SPICE subcircuit at all, e.g. an IBIS model) -- `value` then explains why.
+struct ComponentSimElement {
+    char kind = 0;
+    /// Hierarchical instance name: the component reference for a built-in model ("R1"), or the
+    /// subcircuit path for an expanded element ("C1.XESR.R2").
+    std::string name;
+    /// The element's terminals, in SPICE order. Empty when an element's terminal count couldn't be
+    /// determined (only for kinds other than R/C/L/X).
+    std::vector<ComponentSimNode> nodes;
+    /// Everything after the terminals, verbatim -- for R/C/L the value and any instance parameters
+    /// ("10k", "{Cnom*1.1}", "1u IC=0"), otherwise the model name and parameters.
+    std::string value;
+};
+
+/// Whether KiCad's simulator can produce a model for one board footprint.
+enum class ComponentSimModelStatus {
+    /// `elements` holds the expanded model.
+    Resolved,
+    /// The footprint has no symbol in the project's schematic (board-only parts, or a schematic
+    /// that wasn't updated).
+    NoSymbol,
+    /// The symbol is marked "Exclude from simulation".
+    ExcludedFromSimulation,
+    /// The symbol has no Sim.* model and KiCad can't infer one from its reference and value.
+    NoModel,
+    /// KiCad's model resolution failed -- `message` holds its diagnostics.
+    Error,
+};
+
+/// The SPICE model KiCad's simulator would use for one board footprint, resolved through the
+/// schematic symbol with the same reference (SIM_LIB_MGR::CreateModel(), including R/L/C/V/I
+/// inference from the Value field) and expanded down to primitive elements.
+struct ComponentSimModel {
+    std::string reference;
+    ComponentSimModelStatus status = ComponentSimModelStatus::NoSymbol;
+    /// KiCad's Sim.Device value ("R", "C", "L", "SUBCKT", "SPICE", "D", "NPN", ...); empty unless
+    /// a model was found.
+    std::string deviceType;
+    /// The library model or subcircuit name; empty for built-in and inferred models.
+    std::string modelName;
+    /// The resolved library file the model came from; empty for built-in and inferred models.
+    std::string libraryPath;
+    std::vector<ComponentSimElement> elements;
+    /// KiCad's warnings/errors while resolving the model, one per line; non-empty for Error.
+    std::string message;
 };
 
 namespace detail {
@@ -458,6 +523,14 @@ struct RawComponentModelExportResult {
 
 RawComponentModelExportResult exportComponentModelsRaw(BoardState& board, const std::string& componentFilter,
                                                           const std::string& outputStlPath);
+
+struct RawComponentSimModelsResult {
+    bool ok = false;
+    std::string error;
+    std::vector<ComponentSimModel> models;
+};
+
+RawComponentSimModelsResult componentSimModelsRaw(BoardState& board);
 
 } // namespace detail
 } // namespace libkicad

@@ -29,17 +29,30 @@ endif()
 file(GLOB_RECURSE LIBKICAD_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/libkicad/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/libkicad/*.cxx")
+# libkicad/eeschema is compiled separately -- see libkicad_eeschema below.
+list(FILTER LIBKICAD_SOURCES EXCLUDE REGEX "/libkicad/eeschema/")
+
+# Compile settings shared by every translation unit that includes KiCad headers.  pcbnew and
+# eeschema sources need different include paths and definitions on top of these, and KiCad's
+# headers only build when each sees its own, so the two halves of libkicad are separate targets.
+add_library(libkicad_kicad_flags INTERFACE)
 
 add_library(libkicad STATIC ${LIBKICAD_SOURCES})
 add_library(libkicad::libkicad ALIAS libkicad)
 
+# Model resolution for Board::componentSimModels() reads schematics through eeschema.
+file(GLOB LIBKICAD_EESCHEMA_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/libkicad/eeschema/*.cpp")
+add_library(libkicad_eeschema OBJECT ${LIBKICAD_EESCHEMA_SOURCES})
+target_sources(libkicad PRIVATE $<TARGET_OBJECTS:libkicad_eeschema>)
+
 # KiCad headers are currently C++20-only.  The public wrapper intentionally has no KiCad
 # headers, so it may expose the C++23 std::expected-based API.
-set_target_properties(libkicad PROPERTIES
+set_target_properties(libkicad libkicad_eeschema PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS NO
-    OUTPUT_NAME libkicad)
+    CXX_EXTENSIONS NO)
+set_target_properties(libkicad PROPERTIES OUTPUT_NAME libkicad)
 set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/libkicad/libkicad_api.cpp"
     PROPERTIES COMPILE_OPTIONS "-std=c++23")
 
@@ -48,9 +61,6 @@ target_include_directories(libkicad
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libkicad>"
     PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/libkicad"
-        "${KICAD_SOURCE_ROOT}"
-        "${KICAD_SOURCE_ROOT}/include"
         "${KICAD_SOURCE_ROOT}/pcbnew"
         "${KICAD_SOURCE_ROOT}/pcbnew/dialogs"
         "${KICAD_SOURCE_ROOT}/pcbnew/autorouter"
@@ -58,6 +68,21 @@ target_include_directories(libkicad
         "${KICAD_SOURCE_ROOT}/pcbnew/exporters"
         "${KICAD_SOURCE_ROOT}/pcbnew/importers"
         "${KICAD_SOURCE_ROOT}/pcbnew/specctra_import_export"
+        "${KICAD_BUILD_ROOT}/pcbnew")
+target_compile_definitions(libkicad PRIVATE PCBNEW)
+target_link_libraries(libkicad PRIVATE libkicad_kicad_flags)
+
+target_include_directories(libkicad_eeschema PRIVATE
+    "${KICAD_SOURCE_ROOT}/eeschema"
+    "${KICAD_SOURCE_ROOT}/eeschema/netlist_exporters"
+    "${KICAD_BUILD_ROOT}/eeschema")
+target_link_libraries(libkicad_eeschema PRIVATE libkicad_kicad_flags)
+
+target_include_directories(libkicad_kicad_flags
+    INTERFACE
+        "${CMAKE_CURRENT_SOURCE_DIR}/libkicad"
+        "${KICAD_SOURCE_ROOT}"
+        "${KICAD_SOURCE_ROOT}/include"
         "${KICAD_SOURCE_ROOT}/3d-viewer"
         "${KICAD_SOURCE_ROOT}/3d-viewer/dialogs"
         "${KICAD_SOURCE_ROOT}/common"
@@ -101,10 +126,9 @@ target_include_directories(libkicad
         "${KICAD_BUILD_ROOT}/api/cpp"
         "${KICAD_BUILD_ROOT}/api/cpp/api"
         "${KICAD_BUILD_ROOT}/common"
-        "${KICAD_BUILD_ROOT}/include/gal/shaders"
-        "${KICAD_BUILD_ROOT}/pcbnew")
+        "${KICAD_BUILD_ROOT}/include/gal/shaders")
 
-target_compile_definitions(libkicad PRIVATE
+target_compile_definitions(libkicad_kicad_flags INTERFACE
     BOOST_ATOMIC_DYN_LINK BOOST_ATOMIC_NO_LIB
     BOOST_CHARCONV_DYN_LINK BOOST_CHARCONV_NO_LIB
     BOOST_CHRONO_DYN_LINK BOOST_CHRONO_NO_LIB
@@ -115,19 +139,19 @@ target_compile_definitions(libkicad PRIVATE
     BS_THREAD_POOL_NATIVE_EXTENSIONS=1
     GLM_FORCE_CTOR_INIT HAVE_STDINT_H JSON_HAS_FILESYSTEM=0
     KIAPI_IMPORTEXPORT=APIIMPORT KICAD_CONFIG_DIR=kicad KICAD_SIGNAL_INTEGRITY
-    NANODBC_ENABLE_UNICODE PCBNEW PROTOBUF_USE_DLLS USINGZ WXUSINGDLL
+    NANODBC_ENABLE_UNICODE PROTOBUF_USE_DLLS USINGZ WXUSINGDLL
     _FILE_OFFSET_BITS=64 wxDEBUG_LEVEL=0)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
-    target_compile_definitions(libkicad PRIVATE KICAD_BUILD_ARCH_ARM64)
+    target_compile_definitions(libkicad_kicad_flags INTERFACE KICAD_BUILD_ARCH_ARM64)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    target_compile_definitions(libkicad PRIVATE KICAD_BUILD_ARCH_X64)
+    target_compile_definitions(libkicad_kicad_flags INTERFACE KICAD_BUILD_ARCH_X64)
 else()
-    target_compile_definitions(libkicad PRIVATE KICAD_BUILD_ARCH_X86)
+    target_compile_definitions(libkicad_kicad_flags INTERFACE KICAD_BUILD_ARCH_X86)
 endif()
 
 if(APPLE)
-    target_compile_definitions(libkicad PRIVATE GL_SILENCE_DEPRECATION=1 __WXMAC__ __WXOSX__ __WXOSX_COCOA__)
+    target_compile_definitions(libkicad_kicad_flags INTERFACE GL_SILENCE_DEPRECATION=1 __WXMAC__ __WXOSX__ __WXOSX_COCOA__)
     set(_libkicad_default_prefix "/opt/homebrew")
     if(NOT EXISTS "${_libkicad_default_prefix}")
         set(_libkicad_default_prefix "/usr/local")
@@ -135,7 +159,7 @@ if(APPLE)
     if(NOT LIBKICAD_DEPENDENCY_PREFIX)
         set(LIBKICAD_DEPENDENCY_PREFIX "${_libkicad_default_prefix}")
     endif()
-    target_include_directories(libkicad SYSTEM PRIVATE
+    target_include_directories(libkicad_kicad_flags SYSTEM INTERFACE
         "${LIBKICAD_DEPENDENCY_PREFIX}/include"
         "${LIBKICAD_DEPENDENCY_PREFIX}/include/cairo"
         "${LIBKICAD_DEPENDENCY_PREFIX}/include/pixman-1"
@@ -154,6 +178,19 @@ if(APPLE)
         "${KICAD_BUILD_ROOT}/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/api_handler_board.cpp.o"
         "${KICAD_BUILD_ROOT}/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/headless_pcb_context.cpp.o"
         "${KICAD_BUILD_ROOT}/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/api/pcb_context.cpp.o"
+        # GetStandardColors(): STEP export resolves named stackup colors through it.  Without this
+        # object, -undefined dynamic_lookup binds it to null and boards with e.g. "FR4 natural"
+        # crash in STEP_PCB_MODEL::CreatePCB().
+        "${KICAD_BUILD_ROOT}/pcbnew/CMakeFiles/pcbnew_kiface_objects.dir/board_stackup_manager/stackup_predefined_prms.cpp.o"
+        # Schematic loading and simulation models (Board::componentSimModels()); see
+        # Scripts/build_kicad.sh.  The linker only extracts the eeschema objects that are used.
+        "${KICAD_BUILD_ROOT}/eeschema/libeeschema_kiface_objects.a"
+        "${KICAD_BUILD_ROOT}/eeschema/navlib/libeeschema_navlib.a"
+        "${KICAD_BUILD_ROOT}/common/io/pads/libpads_common.a"
+        "${KICAD_BUILD_ROOT}/thirdparty/libwmf/liblibwmf_orcad.a"
+        "${KICAD_BUILD_ROOT}/thirdparty/nanodbc/libnanodbc.a"
+        "${KICAD_BUILD_ROOT}/thirdparty/tinyspline_lib/libtinyspline_lib.a"
+        "${KICAD_BUILD_ROOT}/libs/snap/libsnap.a"
         "${KICAD_BUILD_ROOT}/common/libpcbcommon.a"
         "${KICAD_BUILD_ROOT}/libs/kiplatform/libkiplatform.a"
         "${KICAD_BUILD_ROOT}/common/libcommon.a"
@@ -246,13 +283,13 @@ else()
         "${KICAD_BUILD_ROOT}/common/libkicommon.so"
         "${KICAD_BUILD_ROOT}/api/libkiapi.so")
 
-    target_include_directories(libkicad SYSTEM PRIVATE
+    target_include_directories(libkicad_kicad_flags SYSTEM INTERFACE
         ${wxWidgets_INCLUDE_DIRS}
         ${FREETYPE_INCLUDE_DIRS}
         ${HarfBuzz_INCLUDE_DIRS}
         ${Fontconfig_INCLUDE_DIRS})
-    target_include_directories(libkicad SYSTEM PRIVATE ${OCC_INCLUDE_DIR})
-    target_compile_definitions(libkicad PRIVATE ${wxWidgets_DEFINITIONS})
+    target_include_directories(libkicad_kicad_flags SYSTEM INTERFACE ${OCC_INCLUDE_DIR})
+    target_compile_definitions(libkicad_kicad_flags INTERFACE ${wxWidgets_DEFINITIONS})
     target_link_libraries(libkicad INTERFACE
         ${KICAD_LINK_LIBRARIES}
         ${wxWidgets_LIBRARIES}
@@ -277,7 +314,7 @@ else()
     target_link_options(libkicad INTERFACE -Wl,--no-as-needed)
 endif()
 
-target_compile_options(libkicad PRIVATE
+target_compile_options(libkicad_kicad_flags INTERFACE
     -Wall -Wsuggest-override -Werror=vla
     -Wimplicit-fallthrough -Werror=return-type -Wshadow -Wsign-compare
     -Wmissing-field-initializers -Wempty-body -Wreorder
@@ -286,7 +323,7 @@ target_compile_options(libkicad PRIVATE
     "-include${KICAD_SOURCE_ROOT}/include/import_export.h")
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    target_compile_options(libkicad PRIVATE
+    target_compile_options(libkicad_kicad_flags INTERFACE
         -Winconsistent-missing-override -Wmismatched-tags -fstandalone-debug -Wno-psabi)
 endif()
 

@@ -174,6 +174,14 @@ public:
     std::expected<ComponentModelExportResult, std::string> exportComponentModels(const std::string& componentFilter,
             const std::string& outputStlPath) const;
 
+    /// One entry per footprint on the board, in board order: the SPICE model KiCad's own simulator
+    /// would use for it, expanded into primitive elements -- see ComponentSimModel. Models come from
+    /// the project's schematic -- the top-level sheets its project file lists, or else the
+    /// .kicad_sch beside the .kicad_pro -- which is reloaded on every call. A missing or unreadable
+    /// schematic is an error; a footprint without a matching symbol is not
+    /// (ComponentSimModelStatus::NoSymbol).
+    std::expected<std::vector<ComponentSimModel>, std::string> componentSimModels() const;
+
 private:
     struct Deleter {
         void operator()(detail::BoardState* state) const;

@@ -65,7 +65,8 @@ esac
 
 # libkicad uses pcbnew internals.  Build the complete pcbnew module rather than selecting a few
 # API objects: those objects depend on its importer, 3D, router, and platform implementations.
-cmake --build "$BUILD_DIR" --target pcbnew_kiface
+# Schematic loading and simulation-model resolution come from eeschema's objects in the same way.
+cmake --build "$BUILD_DIR" --target pcbnew_kiface eeschema_kiface_objects
 
 # KiCad builds pcbnew as a loadable module and intentionally hides its internal C++ symbols.
 # libkicad needs those internals directly, so package the already-built object target into a
@@ -88,6 +89,24 @@ if [ "$(uname -s)" = "Linux" ]; then
   ar rcs "$PCBNEW_OBJECT_ARCHIVE" "$PCBNEW_MODULE_OBJECT" "${PCBNEW_OBJECTS[@]}"
   ranlib "$PCBNEW_OBJECT_ARCHIVE"
 fi
+
+# eeschema has no static library of its own either: everything, including the schematic model
+# and simulator classes libkicad uses, lives in its kiface object target.  Archive those objects
+# on every platform.  Unlike pcbnew's, this deliberately omits the module's own eeschema.cpp
+# object, which would define a second Kiface().
+EESCHEMA_OBJECT_DIR="$BUILD_DIR/eeschema/CMakeFiles/eeschema_kiface_objects.dir"
+EESCHEMA_OBJECT_ARCHIVE="$BUILD_DIR/eeschema/libeeschema_kiface_objects.a"
+EESCHEMA_OBJECTS=()
+while IFS= read -r -d '' object; do
+  EESCHEMA_OBJECTS+=("$object")
+done < <(find "$EESCHEMA_OBJECT_DIR" -name '*.o' -print0)
+if [ "${#EESCHEMA_OBJECTS[@]}" -eq 0 ]; then
+  echo "error: KiCad produced no eeschema object files" >&2
+  exit 1
+fi
+rm -f "$EESCHEMA_OBJECT_ARCHIVE"
+ar rcs "$EESCHEMA_OBJECT_ARCHIVE" "${EESCHEMA_OBJECTS[@]}"
+ranlib "$EESCHEMA_OBJECT_ARCHIVE"
 
 # Lets check_dependencies.py notice when the submodule has moved on since this build.
 git -C "$SOURCE_DIR" rev-parse HEAD > "$BUILD_DIR/.built-commit"

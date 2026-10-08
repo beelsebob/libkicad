@@ -225,4 +225,12 @@ std::expected<ComponentModelExportResult, std::string> Board::exportComponentMod
     return raw.result;
 }
 
+std::expected<std::vector<ComponentSimModel>, std::string> Board::componentSimModels() const {
+    detail::RawComponentSimModelsResult raw = detail::componentSimModelsRaw(*_state);
+    if (!raw.ok) {
+        return std::unexpected(std::move(raw.error));
+    }
+    return raw.models;
+}
+
 } // namespace libkicad

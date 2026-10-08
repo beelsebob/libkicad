@@ -1,6 +1,7 @@
 #include "libkicad_generators.hpp"
 #include "libkicad_result.hpp"
 #include "board_load_timing.hpp"
+#include "eeschema/schematic_sim_models.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -8,6 +9,7 @@
 #include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -1169,7 +1171,7 @@ RawBoardLayerGeometryResult boardLayerGeometryRaw(BoardState& state, const std::
                 SHAPE_POLY_SET polygons;
                 zone->TransformSolidAreasShapesToPolygon(layer, polygons);
                 _appendCopperPolygons(polygons, auxOrigin, zone->GetNetname().ToStdString(), layerName,
-                                      true, result.geometry.copper);
+                                      !zone->IsTeardropArea(), result.geometry.copper);
             }
         }
         for (ZONE* zone : board->Zones()) {
@@ -1177,7 +1179,7 @@ RawBoardLayerGeometryResult boardLayerGeometryRaw(BoardState& state, const std::
             SHAPE_POLY_SET polygons;
             zone->TransformSolidAreasShapesToPolygon(layer, polygons);
             _appendCopperPolygons(polygons, auxOrigin, zone->GetNetname().ToStdString(), layerName,
-                                  true, result.geometry.copper);
+                                  !zone->IsTeardropArea(), result.geometry.copper);
         }
     } else {
         SHAPE_POLY_SET contours;
@@ -1266,7 +1268,7 @@ RawBoardGeometryResult boardGeometryRaw(BoardState& state) {
                 SHAPE_POLY_SET polygons;
                 zone->TransformSolidAreasShapesToPolygon(layer, polygons);
                 _appendCopperPolygons(polygons, auxOrigin, zone->GetNetname().ToStdString(), layerName,
-                                      true, result.geometry.copper);
+                                      !zone->IsTeardropArea(), result.geometry.copper);
             }
         }
 
@@ -1277,7 +1279,7 @@ RawBoardGeometryResult boardGeometryRaw(BoardState& state) {
             SHAPE_POLY_SET polygons;
             zone->TransformSolidAreasShapesToPolygon(layer, polygons);
             _appendCopperPolygons(polygons, auxOrigin, zone->GetNetname().ToStdString(), layerName,
-                                  true, result.geometry.copper);
+                                  !zone->IsTeardropArea(), result.geometry.copper);
         }
     }
 
@@ -1683,6 +1685,42 @@ RawComponentModelExportResult exportComponentModelsRaw(BoardState& state, const 
         result.result.topCopperZMm = exporter.GetTopCopperZ();
     }
 
+    return result;
+}
+
+RawComponentSimModelsResult componentSimModelsRaw(BoardState& state) {
+    RawComponentSimModelsResult result;
+    std::optional<LoadedBoard> loaded = _loadBoard(state, result.error, "componentSimModels");
+    if (!loaded) {
+        return result;
+    }
+
+    // KiCad names a single-root project's root sheet after the project.
+    const std::string rootPath =
+            std::filesystem::path(state.projectPath).replace_extension(".kicad_sch").string();
+    BoardLoadTiming timing("Schematic simulation models");
+    SchematicSimModels schematic = readSchematicSimModels(*state.project, rootPath);
+    if (!schematic.ok) {
+        result.error = std::move(schematic.error);
+        return result;
+    }
+
+    std::map<std::string, ComponentSimModel*> byReference;
+    for (ComponentSimModel& model : schematic.models) {
+        byReference.emplace(model.reference, &model);
+    }
+    for (const FOOTPRINT* footprint : loaded->board->Footprints()) {
+        const std::string reference = footprint->GetReference().ToStdString(wxConvUTF8);
+        if (auto symbol = byReference.find(reference); symbol != byReference.end()) {
+            result.models.push_back(*symbol->second);
+        } else {
+            ComponentSimModel model;
+            model.reference = reference;
+            model.status = ComponentSimModelStatus::NoSymbol;
+            result.models.push_back(std::move(model));
+        }
+    }
+    result.ok = true;
     return result;
 }
 
