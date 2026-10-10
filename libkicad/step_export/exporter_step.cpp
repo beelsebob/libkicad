@@ -1706,3 +1706,9 @@ double EXPORTER_STEP::GetTopCopperZ()
 {
     return m_pcbModel->GetTopCopperZ();
 }
+
+
+void EXPORTER_STEP::GetComponentPlacements( std::vector<STEP_COMPONENT_PLACEMENT>& aPlacements )
+{
+    m_pcbModel->GetComponentPlacements( aPlacements );
+}

@@ -1906,7 +1906,7 @@ bool STEP_PCB_MODEL::AddComponent( const wxString& aBaseName, const wxString& aF
         std::string model_key = fileNameUTF8 + "_" + std::to_string( aScale.x ) + "_"
                                 + std::to_string( aScale.y ) + "_" + std::to_string( aScale.z );
         m_pcb_component_models.push_back(
-                COMPONENT_MODEL_INSTANCE{ llabel, std::move( model_key ), aRefDes.utf8_string() } );
+                COMPONENT_MODEL_INSTANCE{ llabel, std::move( model_key ), aRefDes.utf8_string(), toploc } );
     }
 
     // attach the RefDes name
@@ -4712,6 +4712,21 @@ bool STEP_PCB_MODEL::GetComponentTriangles( std::vector<STEP_COMPONENT_TRIANGLE>
     }
 
     return aTriangles.size() > startSize;
+}
+
+
+void STEP_PCB_MODEL::GetComponentPlacements( std::vector<STEP_COMPONENT_PLACEMENT>& aPlacements )
+{
+    for( const COMPONENT_MODEL_INSTANCE& component : m_pcb_component_models )
+    {
+        const gp_Trsf trsf = component.location.Transformation();
+        const gp_Pnt  origin = gp_Pnt( 0, 0, 0 ).Transformed( trsf );
+        const gp_Dir  normal = gp_Dir( 0, 0, 1 ).Transformed( trsf );
+
+        aPlacements.push_back( STEP_COMPONENT_PLACEMENT{ origin.X(), origin.Y(), origin.Z(),
+                                                         normal.X(), normal.Y(), normal.Z(),
+                                                         component.reference } );
+    }
 }
 
 

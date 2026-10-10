@@ -1,5 +1,7 @@
 #include "spice_subcircuit.hpp"
 
+#include "spice_expression.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <deque>
@@ -114,9 +116,28 @@ bool _isParameter(const std::string& token) {
     return token.find('=') != std::string::npos || _lower(token).starts_with("params:");
 }
 
+/// The name=value parameters among `tokens[first...]`, with names lower-cased and any "params:"
+/// marker (alone, or glued to the first parameter) skipped.
+std::vector<std::pair<std::string, std::string>> _parameters(const std::vector<std::string>& tokens,
+                                                             std::size_t first) {
+    std::vector<std::pair<std::string, std::string>> parameters;
+    for (std::size_t i = first; i < tokens.size(); ++i) {
+        std::string token = tokens[i];
+        if (_lower(token).starts_with("params:")) token.erase(0, 7);
+        const std::size_t equals = token.find('=');
+        if (equals == std::string::npos || equals == 0) continue;
+        parameters.emplace_back(_lower(token.substr(0, equals)), token.substr(equals + 1));
+    }
+    return parameters;
+}
+
 struct Definition {
     std::string name; // lower-case, as are the ports
     std::vector<std::string> ports;
+    /// The header's parameter defaults, in order: name (lower-case) and value expression.
+    std::vector<std::pair<std::string, std::string>> parameters;
+    /// The body's .param cards, in order.
+    std::vector<std::pair<std::string, std::string>> parameterCards;
     std::vector<std::vector<std::string>> elements;
     std::vector<Definition> nested;
 };
@@ -127,9 +148,11 @@ Definition _parseDefinition(const std::vector<std::vector<std::string>>& lines, 
     const std::vector<std::string>& header = lines[index++];
     Definition definition;
     if (header.size() > 1) definition.name = _lower(header[1]);
-    for (std::size_t i = 2; i < header.size() && !_isParameter(header[i]); ++i) {
+    std::size_t i = 2;
+    for (; i < header.size() && !_isParameter(header[i]); ++i) {
         definition.ports.push_back(_lower(header[i]));
     }
+    definition.parameters = _parameters(header, i);
 
     while (index < lines.size()) {
         const std::string card = _lower(lines[index][0]);
@@ -139,6 +162,12 @@ Definition _parseDefinition(const std::vector<std::vector<std::string>>& lines, 
         }
         ++index;
         if (card.starts_with(".ends")) break; // .ends, or the .endsubckt some dialects use
+        if (card == ".param") {
+            for (auto& parameter : _parameters(lines[index - 1], 1)) {
+                definition.parameterCards.push_back(std::move(parameter));
+            }
+            continue;
+        }
         // .model/.param/.func and friends parameterize elements but aren't elements themselves.
         if (card[0] != '.') definition.elements.push_back(lines[index - 1]);
     }
@@ -158,11 +187,27 @@ public:
     Expander(const SubcircuitLookup& lookup, std::vector<ComponentSimElement>& elements)
             : _lookup(lookup), _elements(elements) {}
 
-    /// `scope` holds the enclosing definitions whose nested .subckt blocks are visible here.
+    /// `scope` holds the enclosing definitions whose nested .subckt blocks are visible here;
+    /// `overrides` the instance's parameter values, which replace the header's defaults.
     void expand(const Definition& definition, const std::string& prefix,
                 const std::map<std::string, ComponentSimNode>& portNodes,
-                std::vector<const Definition*> scope, int depth) {
+                std::vector<const Definition*> scope, const SpiceParameters& overrides, int depth) {
         scope.push_back(&definition);
+        // A parameter that can't be evaluated stays unset, so only the elements using it lose
+        // their numeric values.
+        SpiceParameters parameters;
+        for (const auto& [name, expression] : definition.parameters) {
+            if (auto value = evaluateSpiceExpression(expression, parameters)) parameters[name] = *value;
+        }
+        for (const auto& [name, value] : overrides) parameters[name] = value;
+        for (const auto& [name, expression] : definition.parameterCards) {
+            if (auto value = evaluateSpiceExpression(expression, parameters)) {
+                parameters[name] = *value;
+            } else {
+                parameters.erase(name);
+            }
+        }
+
         auto node = [&](const std::string& token) {
             const std::string key = _lower(token);
             if (key == "0") return ComponentSimNode{ComponentSimNode::Kind::Ground, "0"};
@@ -180,18 +225,19 @@ public:
                     element.nodes.push_back(node(tokens[i]));
                 }
                 element.value = _join(tokens, 3);
+                element.numericValue = evaluateElementValue(element.kind, element.value, parameters);
             } else if (element.kind == 'X') {
                 // Xname node... subcircuit [params: ...|name=value ...]: the subcircuit name is the
                 // last token before the parameters.
-                std::size_t parameters = 1;
-                while (parameters < tokens.size() && !_isParameter(tokens[parameters])) ++parameters;
-                if (parameters < 3) {
+                std::size_t firstParameter = 1;
+                while (firstParameter < tokens.size() && !_isParameter(tokens[firstParameter])) ++firstParameter;
+                if (firstParameter < 3) {
                     element.value = "malformed subcircuit instance: " + _join(tokens, 1);
                     _elements.push_back(std::move(element));
                     continue;
                 }
-                const std::string& subcircuitName = tokens[parameters - 1];
-                for (std::size_t i = 1; i + 1 < parameters; ++i) element.nodes.push_back(node(tokens[i]));
+                const std::string& subcircuitName = tokens[firstParameter - 1];
+                for (std::size_t i = 1; i + 1 < firstParameter; ++i) element.nodes.push_back(node(tokens[i]));
 
                 const auto [nested, nestedScope] = _resolve(subcircuitName, scope);
                 if (!nested) {
@@ -206,7 +252,13 @@ public:
                     for (std::size_t i = 0; i < nested->ports.size(); ++i) {
                         nestedPorts.emplace(nested->ports[i], element.nodes[i]);
                     }
-                    expand(*nested, element.name, nestedPorts, nestedScope, depth + 1);
+                    SpiceParameters nestedOverrides;
+                    for (const auto& [name, expression] : _parameters(tokens, firstParameter)) {
+                        if (auto value = evaluateSpiceExpression(expression, parameters)) {
+                            nestedOverrides[name] = *value;
+                        }
+                    }
+                    expand(*nested, element.name, nestedPorts, nestedScope, nestedOverrides, depth + 1);
                     continue;
                 }
             } else {
@@ -257,7 +309,7 @@ private:
 
 std::optional<std::vector<ComponentSimElement>> expandSubcircuit(const std::string& spiceCode,
         const std::string& instanceName, const std::vector<ComponentSimNode>& ports,
-        const SubcircuitLookup& lookup, std::string& error) {
+        const SubcircuitLookup& lookup, std::string& error, const SpiceParameters& parameters) {
     std::optional<Definition> definition = _parseFirstDefinition(spiceCode);
     if (!definition) {
         error = "The model has no .subckt definition";
@@ -272,7 +324,7 @@ std::optional<std::vector<ComponentSimElement>> expandSubcircuit(const std::stri
     }
 
     std::vector<ComponentSimElement> elements;
-    Expander(lookup, elements).expand(*definition, instanceName, portNodes, {}, 0);
+    Expander(lookup, elements).expand(*definition, instanceName, portNodes, {}, parameters, 0);
     return elements;
 }
 

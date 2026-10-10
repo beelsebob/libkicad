@@ -8,42 +8,19 @@
 
 /* Begin PBXFileReference section */
 		4C1CAD000000000000000005 /* BuildPaths.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = BuildPaths.xcconfig; sourceTree = "<group>"; };
-		4C1CAD000000000000000008 /* DependencyCheck.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DependencyCheck.h; sourceTree = "<group>"; };
-		4C1CAD000000000000000007 /* KiCadLink.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KiCadLink.xcconfig; sourceTree = "<group>"; };
 		4C1CAD000000000000000006 /* KiCadPaths.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KiCadPaths.xcconfig; sourceTree = "<group>"; };
+		4C1CAD000000000000000007 /* KiCadLink.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = KiCadLink.xcconfig; sourceTree = "<group>"; };
+		4C1CAD000000000000000008 /* DependencyCheck.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DependencyCheck.h; sourceTree = "<group>"; };
 		4C1CAD00000000000000000C /* liblibkicad.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = liblibkicad.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4C1CAD00000000000000000A /* Exceptions for "libkicad" folder in "libkicad" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			additionalCompilerFlagsByRelativePath = {
-				libkicad_api.cpp = "-std=c++23";
-			};
-			target = 4C1CAD00000000000000000B /* libkicad */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4C1CAD000000000000000009 /* libkicad */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4C1CAD00000000000000000A /* Exceptions for "libkicad" folder in "libkicad" target */,
-			);
 			path = libkicad;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		4C1CAD00000000000000000E /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		4C1CAD000000000000000002 = {
@@ -53,6 +30,14 @@
 				4C1CAD000000000000000009 /* libkicad */,
 				4C1CAD000000000000000003 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		4C1CAD000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				4C1CAD00000000000000000C /* liblibkicad.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		4C1CAD000000000000000004 /* Config */ = {
@@ -66,21 +51,15 @@
 			path = Config;
 			sourceTree = "<group>";
 		};
-		4C1CAD000000000000000003 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4C1CAD00000000000000000C /* liblibkicad.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
 		4C1CAD00000000000000000B /* libkicad */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "\"$(SRCROOT)/Scripts/build_with_cmake.sh\" \"$(CONFIGURATION)\" \"$(BUILT_PRODUCTS_DIR)\"";
-			buildConfigurationList = 4C1CAD000000000000000012 /* Build configuration list for PBXNativeTarget "libkicad" */;
+			buildConfigurationList = 4C1CAD000000000000000012 /* Build configuration list for PBXLegacyTarget "libkicad" */;
+			buildPhases = (
+			);
 			buildToolPath = /bin/sh;
 			buildWorkingDirectory = "$(SRCROOT)";
 			dependencies = (
@@ -116,16 +95,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXSourcesBuildPhase section */
-		4C1CAD00000000000000000D /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
 		4C1CAD000000000000000010 /* Debug */ = {
@@ -635,7 +604,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4C1CAD000000000000000012 /* Build configuration list for PBXNativeTarget "libkicad" */ = {
+		4C1CAD000000000000000012 /* Build configuration list for PBXLegacyTarget "libkicad" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4C1CAD000000000000000013 /* Debug */,

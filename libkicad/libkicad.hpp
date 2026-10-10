@@ -69,6 +69,8 @@ public:
     ~Board() = default;
 
     const BoardPaths& paths() const { return _paths; }
+    /// The Runtime this Board was opened with, for opening related boards alongside it.
+    Runtime& runtime() const { return *_runtime; }
 
     std::expected<PadCounts, std::string> countPads() const;
 
@@ -186,6 +188,7 @@ private:
     struct Deleter {
         void operator()(detail::BoardState* state) const;
     };
+    Runtime* _runtime;
     BoardPaths _paths;
     std::unique_ptr<detail::BoardState, Deleter> _state;
 };

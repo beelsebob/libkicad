@@ -344,6 +344,12 @@ public:
     bool GetComponentTriangles( std::vector<STEP_COMPONENT_TRIANGLE>& aTriangles );
 
     /**
+     * The placement (origin and local +Z) of every component added via AddComponent(), one entry
+     * per model instance, in GetComponentTriangles()'s frame.
+     */
+    void GetComponentPlacements( std::vector<STEP_COMPONENT_PLACEMENT>& aPlacements );
+
+    /**
      * The Z (in mm, same raw coordinate frame/units GetComponentTriangles()'s own vertices are in)
      * of the board's real top-copper mounting surface -- i.e. exactly the Z a top-side surface-mount
      * component's own local Z=0 gets placed at (see getModelLocation()'s own "top" variable, which
@@ -423,6 +429,7 @@ private:
         TDF_Label label;
         std::string modelKey;
         std::string reference;
+        TopLoc_Location location;
     };
 
     // Component instance data for every footprint model added via the public

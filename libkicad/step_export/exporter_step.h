@@ -65,6 +65,9 @@ public:
     /// GetComponentTriangles() above.
     double GetTopCopperZ();
 
+    /// Forwards to STEP_PCB_MODEL::GetComponentPlacements(); same caveat as above.
+    void GetComponentPlacements( std::vector<STEP_COMPONENT_PLACEMENT>& aPlacements );
+
     wxString m_outputFile;
 
 private:

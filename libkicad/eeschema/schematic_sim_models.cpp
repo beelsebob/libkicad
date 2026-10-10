@@ -2,6 +2,7 @@
 
 #include "spice_subcircuit.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <memory>
 #include <optional>
@@ -191,9 +192,21 @@ bool _expandModel(const SIM_LIB_MGR& libraries, const SIM_MODEL& model, const st
             }
             return std::nullopt;
         };
+        // The symbol's Sim.Params values, falling back to the subcircuit header's defaults.
+        SpiceParameters parameters;
+        for (int i = 0; i < model.GetParamCount(); ++i) {
+            const SIM_MODEL::PARAM& param = model.GetParam(i);
+            const std::string& expression = param.value.empty() ? param.info.defaultValue : param.value;
+            if (auto value = evaluateSpiceExpression(expression, parameters)) {
+                std::string name = param.info.name;
+                std::ranges::transform(name, name.begin(),
+                                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                parameters[name] = *value;
+            }
+        }
         std::string error;
         std::optional<std::vector<ComponentSimElement>> elements =
-                expandSubcircuit(subcircuit->GetSpiceCode(), out.reference, nodes, lookup, error);
+                expandSubcircuit(subcircuit->GetSpiceCode(), out.reference, nodes, lookup, error, parameters);
         if (!elements) {
             out.message = error;
             return false;
@@ -220,6 +233,9 @@ bool _expandModel(const SIM_LIB_MGR& libraries, const SIM_MODEL& model, const st
         } else {
             element.value = out.modelName.empty() ? _utf8(model.GetDeviceInfo().description) : out.modelName;
         }
+    }
+    if (element.kind == 'R' || element.kind == 'C' || element.kind == 'L') {
+        element.numericValue = evaluateElementValue(element.kind, element.value, {});
     }
     if (element.kind == 0) {
         out.message = "KiCad has no SPICE element type for this " + out.deviceType + " model";

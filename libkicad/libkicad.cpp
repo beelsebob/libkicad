@@ -942,6 +942,7 @@ RawTracksOnNetResult tracksOnNetRaw(BoardState& state, const std::string& netNam
         segment.endYMm = -pcbIUScale.IUTomm(end.y);
         segment.widthMm = pcbIUScale.IUTomm(track->GetWidth());
         segment.copperLayerName = board->GetLayerName(track->GetLayer()).ToStdString();
+        segment.uuid = track->m_Uuid.AsString().ToStdString();
         result.tracks.push_back(std::move(segment));
     }
     return result;
@@ -1000,6 +1001,7 @@ RawAllTracksResult allTracksRaw(BoardState& state) {
         segment.endYMm = -pcbIUScale.IUTomm(end.y);
         segment.widthMm = pcbIUScale.IUTomm(track->GetWidth());
         segment.copperLayerName = board->GetLayerName(track->GetLayer()).ToStdString();
+        segment.uuid = track->m_Uuid.AsString().ToStdString();
         result.tracks.emplace_back(track->GetNetname().ToStdString(), std::move(segment));
     };
 
@@ -1553,6 +1555,19 @@ RawThroughHolesResult throughHolesRaw(BoardState& state) {
         const double drillMm = pcbIUScale.IUTomm(via->GetDrillValue());
         hole.drillWidthMm = drillMm;
         hole.drillHeightMm = drillMm;
+
+        // Each PADSTACK feature is an optional<bool>; unset means "from rules", i.e. the board's
+        // own Board Setup default for that feature.
+        const BOARD_DESIGN_SETTINGS& rules = board->GetDesignSettings();
+        const PADSTACK& padstack = via->Padstack();
+        hole.protection.tentedFront = padstack.FrontOuterLayers().has_solder_mask.value_or(rules.m_TentViasFront);
+        hole.protection.tentedBack = padstack.BackOuterLayers().has_solder_mask.value_or(rules.m_TentViasBack);
+        hole.protection.coveredFront = padstack.FrontOuterLayers().has_covering.value_or(rules.m_CoverViasFront);
+        hole.protection.coveredBack = padstack.BackOuterLayers().has_covering.value_or(rules.m_CoverViasBack);
+        hole.protection.pluggedFront = padstack.FrontOuterLayers().has_plugging.value_or(rules.m_PlugViasFront);
+        hole.protection.pluggedBack = padstack.BackOuterLayers().has_plugging.value_or(rules.m_PlugViasBack);
+        hole.protection.filled = padstack.Drill().is_filled.value_or(rules.m_FillVias);
+        hole.protection.capped = padstack.Drill().is_capped.value_or(rules.m_CapVias);
         result.holes.push_back(std::move(hole));
     }
 
@@ -1683,6 +1698,12 @@ RawComponentModelExportResult exportComponentModelsRaw(BoardState& state, const 
                     t.footprintReference});
         }
         result.result.topCopperZMm = exporter.GetTopCopperZ();
+        std::vector<STEP_COMPONENT_PLACEMENT> rawPlacements;
+        exporter.GetComponentPlacements(rawPlacements);
+        for (const STEP_COMPONENT_PLACEMENT& p : rawPlacements) {
+            result.result.placements.push_back(
+                    ComponentPlacement{p.ox, p.oy, p.oz, p.nx, p.ny, p.nz, p.footprintReference});
+        }
     }
 
     return result;

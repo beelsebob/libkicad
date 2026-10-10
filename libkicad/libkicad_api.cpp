@@ -24,7 +24,8 @@ void Runtime::Deleter::operator()(detail::RuntimeState* state) const {
 }
 
 Board::Board(Runtime& runtime, std::string projectPath, std::string boardPath)
-    : _paths{std::move(projectPath), std::move(boardPath)},
+    : _runtime(&runtime),
+      _paths{std::move(projectPath), std::move(boardPath)},
       _state(detail::createBoardRaw(*runtime._state, _paths.projectPath, _paths.boardPath)) {}
 
 void Board::Deleter::operator()(detail::BoardState* state) const {

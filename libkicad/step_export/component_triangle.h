@@ -24,4 +24,14 @@ struct STEP_COMPONENT_TRIANGLE
     std::string footprintReference;
 };
 
+/// Where one footprint's 3D model was placed: its local origin, and its local +Z axis (the
+/// model's "up", pointing away from the board on the side it is mounted), both in the same frame
+/// as STEP_COMPONENT_TRIANGLE's vertices.
+struct STEP_COMPONENT_PLACEMENT
+{
+    double ox, oy, oz;
+    double nx, ny, nz;
+    std::string footprintReference;
+};
+
 #endif

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -74,6 +75,9 @@ struct TrackSegment {
     double endYMm = 0;
     double widthMm = 0;
     std::string copperLayerName;
+    /// The KiCad track's own UUID. Stable across edits that leave the track in place; every piece
+    /// of a flattened arc carries its arc's UUID.
+    std::string uuid;
 };
 
 /// One pad on a footprint, identified the same way PadPosition/ExcitationConfig/InvolvedNetConfig
@@ -134,6 +138,22 @@ struct ThroughHole {
     /// Rotation of the drill's local X axis in KiCad board coordinates. Needed to reconstruct the
     /// centerline of an oblong drill without round-tripping through an Excellon G85 record.
     double orientationDeg = 0;
+    /// IPC-4761 via protection, resolved against Board Setup's defaults wherever the via itself
+    /// leaves a feature "from rules". Always all-false for a through-hole pad: KiCad only exposes
+    /// these on vias. Tenting/covering/plugging are per side (front = F.Cu side); filling and
+    /// capping apply to the whole drill. KiCad records only *whether* the hole is filled, never
+    /// with what -- the fill material is a fab-house choice outside the board data model. Type VII
+    /// (filled and capped) is filled && capped.
+    struct Protection {
+        bool tentedFront = false;
+        bool tentedBack = false;
+        bool coveredFront = false;
+        bool coveredBack = false;
+        bool pluggedFront = false;
+        bool pluggedBack = false;
+        bool filled = false;
+        bool capped = false;
+    } protection;
 };
 
 /// One non-plated footprint-pad hole. KiCad represents both round mechanical holes and routed
@@ -247,6 +267,15 @@ struct ComponentTriangle {
     std::string footprintReference;
 };
 
+/// Where a footprint's 3D model was placed -- mirrors STEP_COMPONENT_PLACEMENT. Origin is the
+/// model's local origin and (nx, ny, nz) its local +Z axis (unit length, pointing away from the
+/// board on the side it is mounted), both in ComponentTriangle's frame.
+struct ComponentPlacement {
+    double ox = 0, oy = 0, oz = 0;
+    double nx = 0, ny = 0, nz = 1;
+    std::string footprintReference;
+};
+
 /// Result of exporting specific footprints' own real, placed 3D models (via
 /// EXPORTER_STEP/STEP_PCB_MODEL, the same machinery `kicad-cli pcb export stl` itself uses, run
 /// in-process instead of as a second subprocess) -- see exportComponentModels()'s own doc comment.
@@ -260,6 +289,8 @@ struct ComponentModelExportResult {
     bool exportSucceeded = false;
     std::vector<std::string> messages;
     std::vector<ComponentTriangle> triangles;
+    /// One entry per placed model (a footprint with several models has several).
+    std::vector<ComponentPlacement> placements;
     /// The board's real top-copper mounting surface Z, in the same millimetre frame `triangles`'
     /// own vertices are in -- mirrors STEP_PCB_MODEL::GetTopCopperZ()'s own doc comment for exactly
     /// what this is and why a caller placing these triangles into a *different* Z=0 convention
@@ -300,6 +331,10 @@ struct ComponentSimElement {
     /// Everything after the terminals, verbatim -- for R/C/L the value and any instance parameters
     /// ("10k", "{Cnom*1.1}", "1u IC=0"), otherwise the model name and parameters.
     std::string value;
+    /// For R/L/C only: the element's principal value in ohms, henries or farads, with subcircuit
+    /// parameters (header defaults, instance overrides and .param cards) substituted. nullopt when
+    /// it couldn't be evaluated -- an unknown parameter, or an expression too elaborate to follow.
+    std::optional<double> numericValue;
 };
 
 /// Whether KiCad's simulator can produce a model for one board footprint.

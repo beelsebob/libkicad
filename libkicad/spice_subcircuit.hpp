@@ -4,6 +4,7 @@
 #pragma once
 
 #include "libkicad_result.hpp"
+#include "spice_expression.hpp"
 
 #include <functional>
 #include <optional>
@@ -23,10 +24,15 @@ using SubcircuitLookup = std::function<std::optional<std::string>(const std::str
 /// nested in an enclosing subcircuit first, then `lookup`; one that resolves nowhere is kept as an
 /// unexpanded 'X' element. Every element and internal node name is prefixed with `instanceName`.
 ///
-/// Comments, '+' continuation lines and dot-cards other than nested .subckt/.ends are skipped.
-/// Returns nullopt, with `error` set, only if `spiceCode` holds no subcircuit definition at all.
+/// R/L/C values are evaluated (ComponentSimElement::numericValue) with the subcircuit's header
+/// defaults, overridden by `parameters` -- the outer instance's values -- and then its .param
+/// cards; nested instances pass their own parameter values down the same way.
+///
+/// Comments, '+' continuation lines and dot-cards other than nested .subckt/.ends/.param are
+/// skipped. Returns nullopt, with `error` set, only if `spiceCode` holds no subcircuit definition
+/// at all.
 std::optional<std::vector<ComponentSimElement>> expandSubcircuit(const std::string& spiceCode,
         const std::string& instanceName, const std::vector<ComponentSimNode>& ports,
-        const SubcircuitLookup& lookup, std::string& error);
+        const SubcircuitLookup& lookup, std::string& error, const SpiceParameters& parameters = {});
 
 } // namespace libkicad::detail
