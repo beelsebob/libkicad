@@ -337,6 +337,13 @@ struct ComponentSimElement {
     std::optional<double> numericValue;
 };
 
+/// A KiCad autosave holding changes its source file doesn't have yet -- what KiCad itself would
+/// offer to recover on reopening the project.
+struct AutosaveFile {
+    std::string autosavePath;
+    std::string sourcePath;
+};
+
 /// Whether KiCad's simulator can produce a model for one board footprint.
 enum class ComponentSimModelStatus {
     /// `elements` holds the expanded model.
@@ -558,6 +565,14 @@ struct RawComponentModelExportResult {
 
 RawComponentModelExportResult exportComponentModelsRaw(BoardState& board, const std::string& componentFilter,
                                                           const std::string& outputStlPath);
+
+struct RawUnsavedAutosavesResult {
+    bool ok = false;
+    std::string error;
+    std::vector<AutosaveFile> files;
+};
+
+RawUnsavedAutosavesResult unsavedAutosavesRaw(BoardState& board);
 
 struct RawComponentSimModelsResult {
     bool ok = false;

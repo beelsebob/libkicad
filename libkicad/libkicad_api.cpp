@@ -234,4 +234,12 @@ std::expected<std::vector<ComponentSimModel>, std::string> Board::componentSimMo
     return raw.models;
 }
 
+std::expected<std::vector<AutosaveFile>, std::string> Board::unsavedAutosaves() const {
+    detail::RawUnsavedAutosavesResult raw = detail::unsavedAutosavesRaw(*_state);
+    if (!raw.ok) {
+        return std::unexpected(std::move(raw.error));
+    }
+    return raw.files;
+}
+
 } // namespace libkicad

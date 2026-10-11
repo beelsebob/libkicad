@@ -184,6 +184,11 @@ public:
     /// (ComponentSimModelStatus::NoSymbol).
     std::expected<std::vector<ComponentSimModel>, std::string> componentSimModels() const;
 
+    /// Every file of this board's project (board, schematic sheets, ...) whose KiCad autosave is
+    /// newer than, and different from, the file itself: changes KiCad holds but hasn't saved. Uses
+    /// KiCad's own crash-recovery test, wherever its settings put autosave files.
+    std::expected<std::vector<AutosaveFile>, std::string> unsavedAutosaves() const;
+
 private:
     struct Deleter {
         void operator()(detail::BoardState* state) const;

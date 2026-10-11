@@ -35,6 +35,9 @@
 #include <settings/common_settings.h>
 #include <settings/color_settings.h>
 #include <project.h>
+#include <local_history.h>
+#include <settings/common_settings.h>
+#include <settings/settings_manager.h>
 #include <project/project_file.h>
 #include <base_units.h>
 #include <board.h>
@@ -454,6 +457,17 @@ std::shared_ptr<const BoardState::SimpleState> _currentSimpleState(const BoardSt
 #pragma GCC diagnostic pop
 #endif
 
+// The copper layer an SMD pad sits on. PAD::GetLayer() (and GetPrincipalLayer(), which returns the
+// same member for SMD pads) can report F.Cu for a pad on a flipped, bottom-side footprint; the
+// pad's own layer set is what the board file records ("B.Cu"), so take its copper layer from
+// there. A pad spanning several copper layers (through-hole) keeps its first, as before.
+PCB_LAYER_ID _padCopperLayer(const PAD& pad) {
+    LSET copperLayers = pad.GetLayerSet();
+    copperLayers &= LSET::AllCuMask();
+    const LSEQ copper = copperLayers.Seq();
+    return copper.empty() ? pad.GetLayer() : copper.front();
+}
+
 // Shared board-loading sequence: SETTINGS_MANAGER project load, PCB_IO_KICAD_SEXPR board load,
 // HEADLESS_PCB_CONTEXT construction (this is what wires BOARD::SetProject(), needed before any
 // netclass query -- see netsInNetClassRaw). Bypasses PCB_IO_MGR's format registry (which
@@ -834,7 +848,7 @@ RawPadResult resolvePinRaw(BoardState& state, const std::string& footprintRef, c
     // libkicad-reported Y was the exact negation of its Gerber-file Y at the same physical spot.
     result.pad.yMm = -pcbIUScale.IUTomm(position.y);
     result.pad.orientationDeg = pad->GetOrientation().AsDegrees();
-    result.pad.copperLayerName = board->GetLayerName(pad->GetLayer()).ToStdString();
+    result.pad.copperLayerName = board->GetLayerName(_padCopperLayer(*pad)).ToStdString();
     result.pad.widthMm = pcbIUScale.IUTomm(pad->GetSizeX());
     result.pad.heightMm = pcbIUScale.IUTomm(pad->GetSizeY());
     return result;
@@ -906,7 +920,7 @@ RawPadsOnNetResult padsOnNetRaw(BoardState& state, const std::string& netName) {
             // Y flip: see the identical comment in resolvePinRaw().
             padPosition.yMm = -pcbIUScale.IUTomm(position.y);
             padPosition.orientationDeg = pad->GetOrientation().AsDegrees();
-            padPosition.copperLayerName = board->GetLayerName(pad->GetLayer()).ToStdString();
+            padPosition.copperLayerName = board->GetLayerName(_padCopperLayer(*pad)).ToStdString();
             padPosition.widthMm = pcbIUScale.IUTomm(pad->GetSizeX());
             padPosition.heightMm = pcbIUScale.IUTomm(pad->GetSizeY());
             result.pads.push_back(std::move(padPosition));
@@ -970,7 +984,7 @@ RawPadsOnNetResult allPadsRaw(BoardState& state) {
             padPosition.xMm = pcbIUScale.IUTomm(position.x);
             padPosition.yMm = -pcbIUScale.IUTomm(position.y);
             padPosition.orientationDeg = pad->GetOrientation().AsDegrees();
-            padPosition.copperLayerName = board->GetLayerName(pad->GetLayer()).ToStdString();
+            padPosition.copperLayerName = board->GetLayerName(_padCopperLayer(*pad)).ToStdString();
             padPosition.widthMm = pcbIUScale.IUTomm(pad->GetSizeX());
             padPosition.heightMm = pcbIUScale.IUTomm(pad->GetSizeY());
             result.pads.push_back(std::move(padPosition));
@@ -1709,6 +1723,15 @@ RawComponentModelExportResult exportComponentModelsRaw(BoardState& state, const 
     return result;
 }
 
+// Byte-for-byte comparison of two files; unreadable counts as different.
+bool _filesEqual(const std::filesystem::path& a, const std::filesystem::path& b) {
+    std::ifstream fileA(a, std::ios::binary);
+    std::ifstream fileB(b, std::ios::binary);
+    if (!fileA || !fileB) return false;
+    return std::equal(std::istreambuf_iterator<char>(fileA), std::istreambuf_iterator<char>(),
+                      std::istreambuf_iterator<char>(fileB), std::istreambuf_iterator<char>());
+}
+
 RawComponentSimModelsResult componentSimModelsRaw(BoardState& state) {
     RawComponentSimModelsResult result;
     std::optional<LoadedBoard> loaded = _loadBoard(state, result.error, "componentSimModels");
@@ -1739,6 +1762,37 @@ RawComponentSimModelsResult componentSimModelsRaw(BoardState& state) {
             model.reference = reference;
             model.status = ComponentSimModelStatus::NoSymbol;
             result.models.push_back(std::move(model));
+        }
+    }
+    result.ok = true;
+    return result;
+}
+
+RawUnsavedAutosavesResult unsavedAutosavesRaw(BoardState& state) {
+    RawUnsavedAutosavesResult result;
+    std::optional<LoadedBoard> loaded = _loadBoard(state, result.error, "unsavedAutosaves");
+    if (!loaded) {
+        return result;
+    }
+    // Mirrors LOCAL_HISTORY::FindStaleAutosaveFiles(), which needs a KIWAY's LOCAL_HISTORY: an
+    // autosave counts when its source is missing, or it is newer *and* its content differs (sync
+    // clients bump a byte-identical autosave's mtime past the source).
+    SETTINGS_MANAGER& settingsManager = Pgm().GetSettingsManager();
+    const wxString projectPath = state.project->GetProjectPath();
+    const wxString autosaveRoot = settingsManager.GetAutosaveRootForProject(state.project);
+    const BACKUP_LOCATION location = settingsManager.GetCommonSettings()->m_Backup.location;
+    for (const auto& [autosave, source] : LOCAL_HISTORY::CollectAutosaveFilePairs(autosaveRoot, projectPath, location)) {
+        const std::filesystem::path autosavePath(autosave.ToStdString(wxConvUTF8));
+        const std::filesystem::path sourcePath(source.ToStdString(wxConvUTF8));
+        std::error_code ec;
+        bool unsaved = !std::filesystem::exists(sourcePath, ec);
+        if (!unsaved) {
+            const auto autosaveTime = std::filesystem::last_write_time(autosavePath, ec);
+            const auto sourceTime = ec ? autosaveTime : std::filesystem::last_write_time(sourcePath, ec);
+            unsaved = !ec && autosaveTime > sourceTime && !_filesEqual(autosavePath, sourcePath);
+        }
+        if (unsaved) {
+            result.files.push_back({autosavePath.string(), sourcePath.string()});
         }
     }
     result.ok = true;
