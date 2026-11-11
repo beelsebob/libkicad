@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <numbers>
 #include <vector>
 
 namespace libkicad::detail {
@@ -197,7 +198,7 @@ private:
         if (!_consume("(")) {
             const auto found = _parameters.find(name);
             if (found != _parameters.end()) return found->second;
-            if (name == "pi") return M_PI;
+            if (name == "pi") return std::numbers::pi;
             return std::nullopt;
         }
         std::vector<double> arguments;

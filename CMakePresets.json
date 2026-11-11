@@ -48,12 +48,48 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "windows-base",
+      "hidden": true,
+      "inherits": "base",
+      "description": "MSVC + vcpkg in manifest mode (root vcpkg.json). Run from a Visual Studio x64 Developer prompt with VCPKG_ROOT set. KiCad's Windows build is RelWithDebInfo and MSVC cannot mix runtime libraries, so RelWithDebInfo (not Debug) is the debugging configuration.",
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "binaryDir": "${sourceDir}/out/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "toolset": { "value": "host=x64", "strategy": "external" },
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl",
+        "CMAKE_CXX_COMPILER": "cl",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}/submodules/kicad"
+      }
+    },
+    {
+      "name": "windows-msvc-relwithdebinfo",
+      "displayName": "Windows (MSVC) RelWithDebInfo",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Windows (MSVC) Release",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
     { "name": "macos-debug", "configurePreset": "macos-debug" },
     { "name": "macos-release", "configurePreset": "macos-release" },
     { "name": "linux-debug", "configurePreset": "linux-debug" },
-    { "name": "linux-release", "configurePreset": "linux-release" }
+    { "name": "linux-release", "configurePreset": "linux-release" },
+    { "name": "windows-msvc-relwithdebinfo", "configurePreset": "windows-msvc-relwithdebinfo" },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" }
   ]
 }

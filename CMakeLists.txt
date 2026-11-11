@@ -2,6 +2,67 @@ cmake_minimum_required(VERSION 3.25)
 
 project(libkicad LANGUAGES CXX)
 
+# Where libkicad gets its board data from. Both backends implement the same libkicad.hpp API.
+#   kicad-source  Links KiCad's internal C++ classes (libkicad.cpp): needs a KiCad source build that
+#                 matches the KiCad submodule -- everything below this block.
+#   stock         Asks an installed KiCad, through its own Python (pcbnew module) and kicad-cli
+#                 (libkicad/stock/): no KiCad build at all. 3D-model export isn't supported yet.
+# Windows defaults to stock; macOS and Linux keep kicad-source until the two are compared.
+if(WIN32)
+    set(_libkicad_default_backend stock)
+else()
+    set(_libkicad_default_backend kicad-source)
+endif()
+set(LIBKICAD_BACKEND "${_libkicad_default_backend}" CACHE STRING
+    "Where libkicad reads KiCad boards from: kicad-source (a KiCad source build) or stock (an installed KiCad)")
+set_property(CACHE LIBKICAD_BACKEND PROPERTY STRINGS kicad-source stock)
+
+if(LIBKICAD_BACKEND STREQUAL "stock")
+    find_package(nlohmann_json REQUIRED)
+
+    # The bridge script is compiled into the library, so there is nothing extra to deploy.
+    set(LIBKICAD_BRIDGE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/libkicad/stock/kicad_bridge.py")
+    set(LIBKICAD_BRIDGE_HEADER "${CMAKE_CURRENT_BINARY_DIR}/generated/kicad_bridge_script.hpp")
+    add_custom_command(
+        OUTPUT "${LIBKICAD_BRIDGE_HEADER}"
+        COMMAND "${CMAKE_COMMAND}" "-DINPUT=${LIBKICAD_BRIDGE_SCRIPT}" "-DOUTPUT=${LIBKICAD_BRIDGE_HEADER}"
+                -DNAME=kKicadBridgeScript -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_file.cmake"
+        DEPENDS "${LIBKICAD_BRIDGE_SCRIPT}" "${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_file.cmake"
+        COMMENT "Embedding libkicad's KiCad bridge script"
+        VERBATIM)
+
+    # No KiCad headers anywhere, so the whole library builds as C++23.
+    add_library(libkicad STATIC
+        libkicad/libkicad_api.cpp
+        libkicad/spice_expression.cpp
+        libkicad/spice_subcircuit.cpp
+        libkicad/stock/libkicad_stock.cpp
+        libkicad/stock/stock_process.cpp
+        "${LIBKICAD_BRIDGE_HEADER}")
+    add_library(libkicad::libkicad ALIAS libkicad)
+    set_target_properties(libkicad PROPERTIES
+        CXX_STANDARD 23
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+        OUTPUT_NAME libkicad)
+    target_include_directories(libkicad
+        PUBLIC
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
+            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/libkicad>"
+        PRIVATE
+            "${CMAKE_CURRENT_BINARY_DIR}/generated")
+    target_link_libraries(libkicad PRIVATE nlohmann_json::nlohmann_json)
+    if(MSVC)
+        target_compile_options(libkicad PRIVATE /utf-8)
+        target_compile_definitions(libkicad PRIVATE _CRT_SECURE_NO_WARNINGS)
+    endif()
+
+    include(GNUInstallDirs)
+    install(TARGETS libkicad ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    install(FILES libkicad/libkicad.hpp libkicad/libkicad_result.hpp DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/libkicad")
+    return()
+endif()
+
 # libkicad deliberately compiles against KiCad's internal C++ API.  Build KiCad first with
 # Scripts/build_kicad.sh (or an equivalent Linux KiCad build) and point KICAD_BUILD_ROOT at it.
 set(KICAD_SOURCE_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/submodules/kicad" CACHE PATH
@@ -17,7 +78,7 @@ endif()
 
 if(NOT EXISTS "${KICAD_BUILD_ROOT}/compile_commands.json")
     message(FATAL_ERROR
-        "KiCad build is missing at ${KICAD_BUILD_ROOT}. Run Scripts/build_kicad.sh first, or set KICAD_BUILD_ROOT to a matching KiCad build.")
+        "KiCad build is missing at ${KICAD_BUILD_ROOT}. Run Scripts/build_kicad.sh (Scripts/build_kicad_windows.py on Windows) first, or set KICAD_BUILD_ROOT to a matching KiCad build.")
 endif()
 
 if(LIBKICAD_DEPENDENCY_PREFIX)
@@ -54,7 +115,7 @@ set_target_properties(libkicad libkicad_eeschema PROPERTIES
     CXX_EXTENSIONS NO)
 set_target_properties(libkicad PROPERTIES OUTPUT_NAME libkicad)
 set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/libkicad/libkicad_api.cpp"
-    PROPERTIES COMPILE_OPTIONS "-std=c++23")
+    PROPERTIES COMPILE_OPTIONS "$<IF:$<CXX_COMPILER_ID:MSVC>,/std:c++latest,-std=c++23>")
 
 target_include_directories(libkicad
     PUBLIC
@@ -128,6 +189,7 @@ target_include_directories(libkicad_kicad_flags
         "${KICAD_BUILD_ROOT}/common"
         "${KICAD_BUILD_ROOT}/include/gal/shaders")
 
+if(NOT WIN32)
 target_compile_definitions(libkicad_kicad_flags INTERFACE
     BOOST_ATOMIC_DYN_LINK BOOST_ATOMIC_NO_LIB
     BOOST_CHARCONV_DYN_LINK BOOST_CHARCONV_NO_LIB
@@ -141,8 +203,9 @@ target_compile_definitions(libkicad_kicad_flags INTERFACE
     KIAPI_IMPORTEXPORT=APIIMPORT KICAD_CONFIG_DIR=kicad KICAD_SIGNAL_INTEGRITY
     NANODBC_ENABLE_UNICODE PROTOBUF_USE_DLLS USINGZ WXUSINGDLL
     _FILE_OFFSET_BITS=64 wxDEBUG_LEVEL=0)
+endif()
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64)$")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(arm64|aarch64|ARM64)$")
     target_compile_definitions(libkicad_kicad_flags INTERFACE KICAD_BUILD_ARCH_ARM64)
 elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
     target_compile_definitions(libkicad_kicad_flags INTERFACE KICAD_BUILD_ARCH_X64)
@@ -214,6 +277,70 @@ if(APPLE)
     endforeach()
     target_link_libraries(libkicad INTERFACE ${KICAD_LINK_LIBRARIES})
     target_link_options(libkicad INTERFACE "-Wl,-undefined,dynamic_lookup")
+elseif(WIN32)
+    # KiCad's supported Windows toolchain is MSVC with vcpkg, and libkicad links KiCad's C++
+    # objects directly, so it must be built the same way. Scripts/build_kicad_windows.py builds
+    # KiCad, archives pcbnew's and eeschema's object targets (as build_kicad.sh does on Linux),
+    # and writes libkicad_windows.cmake: the include directories, definitions, link libraries and
+    # DLLs taken from KiCad's own compile_commands.json and build.ninja, so nothing here has to be
+    # kept in step with KiCad by hand.
+    if(NOT MSVC)
+        message(FATAL_ERROR "libkicad on Windows needs MSVC (or clang-cl), matching KiCad's own Windows build.")
+    endif()
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        message(FATAL_ERROR
+            "libkicad cannot be built as Debug on Windows: MSVC cannot link Debug code against KiCad's "
+            "release-runtime objects. Use RelWithDebInfo (the windows-msvc-relwithdebinfo preset).")
+    endif()
+    set(LIBKICAD_WINDOWS_LINK_FILE "${KICAD_BUILD_ROOT}/libkicad_windows.cmake")
+    if(NOT EXISTS "${LIBKICAD_WINDOWS_LINK_FILE}")
+        message(FATAL_ERROR
+            "${LIBKICAD_WINDOWS_LINK_FILE} is missing. Run Scripts/build_kicad_windows.py from a Visual "
+            "Studio x64 Developer prompt first (KiEMS's Scripts/check_dependencies.py does this).")
+    endif()
+    include("${LIBKICAD_WINDOWS_LINK_FILE}")
+    execute_process(COMMAND git -C "${KICAD_SOURCE_ROOT}" rev-parse HEAD
+        OUTPUT_VARIABLE _libkicad_kicad_head OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+    if(_libkicad_kicad_head AND NOT _libkicad_kicad_head STREQUAL LIBKICAD_WINDOWS_KICAD_COMMIT)
+        message(WARNING "The KiCad build in ${KICAD_BUILD_ROOT} is from ${LIBKICAD_WINDOWS_KICAD_COMMIT}, "
+            "but the submodule is at ${_libkicad_kicad_head}. Rerun Scripts/build_kicad_windows.py.")
+    endif()
+
+    target_include_directories(libkicad SYSTEM PRIVATE ${LIBKICAD_WINDOWS_PCBNEW_INCLUDES})
+    target_compile_definitions(libkicad PRIVATE ${LIBKICAD_WINDOWS_PCBNEW_DEFINITIONS})
+    foreach(forced_include IN LISTS LIBKICAD_WINDOWS_PCBNEW_FORCED_INCLUDES)
+        target_compile_options(libkicad PRIVATE "/FI${forced_include}")
+    endforeach()
+    target_include_directories(libkicad_eeschema SYSTEM PRIVATE ${LIBKICAD_WINDOWS_EESCHEMA_INCLUDES})
+    target_compile_definitions(libkicad_eeschema PRIVATE ${LIBKICAD_WINDOWS_EESCHEMA_DEFINITIONS})
+    foreach(forced_include IN LISTS LIBKICAD_WINDOWS_EESCHEMA_FORCED_INCLUDES)
+        target_compile_options(libkicad_eeschema PRIVATE "/FI${forced_include}")
+    endforeach()
+
+    # KiCad's own DLLs become imported targets, so consumers can deploy them next to their
+    # executables with $<TARGET_RUNTIME_DLLS:...> (Windows has no RPATH).
+    set(_libkicad_dll_targets)
+    foreach(kicad_dll IN ZIP_LISTS LIBKICAD_WINDOWS_IMPORT_LIBRARIES LIBKICAD_WINDOWS_RUNTIME_DLLS)
+        get_filename_component(_libkicad_dll_name "${kicad_dll_1}" NAME_WE)
+        set(_libkicad_dll_target "libkicad_kicad_${_libkicad_dll_name}")
+        if(NOT TARGET ${_libkicad_dll_target})
+            add_library(${_libkicad_dll_target} SHARED IMPORTED GLOBAL)
+            set_target_properties(${_libkicad_dll_target} PROPERTIES
+                IMPORTED_IMPLIB "${kicad_dll_0}"
+                IMPORTED_LOCATION "${kicad_dll_1}")
+        endif()
+        list(APPEND _libkicad_dll_targets ${_libkicad_dll_target})
+    endforeach()
+
+    # For consumers' install rules.
+    set_property(GLOBAL PROPERTY LIBKICAD_RUNTIME_DLLS ${LIBKICAD_WINDOWS_RUNTIME_DLLS})
+
+    # The archives first, then the libraries in the order KiCad links its own modules with. That
+    # order already resolves the PCB-specific netlist code in pcbcommon ahead of common's.
+    target_link_libraries(libkicad INTERFACE
+        ${LIBKICAD_WINDOWS_OBJECT_ARCHIVES}
+        ${LIBKICAD_WINDOWS_LINK_LIBRARIES}
+        ${_libkicad_dll_targets})
 else()
     list(PREPEND CMAKE_MODULE_PATH "${KICAD_SOURCE_ROOT}/cmake")
     # kiplatform is a static KiCad library.  Its original build links GTK, X11,
@@ -314,6 +441,12 @@ else()
     target_link_options(libkicad INTERFACE -Wl,--no-as-needed)
 endif()
 
+if(MSVC)
+    # The settings KiCad's MSVC build compiles its own code with; import_export.h supplies the
+    # APIEXPORT/APIIMPORT macros (KIAPI_IMPORTEXPORT and friends) that KiCad's headers expect.
+    target_compile_options(libkicad_kicad_flags INTERFACE
+        /permissive- /Zc:inline "/FI${KICAD_SOURCE_ROOT}/include/import_export.h")
+else()
 target_compile_options(libkicad_kicad_flags INTERFACE
     -Wall -Wsuggest-override -Werror=vla
     -Wimplicit-fallthrough -Werror=return-type -Wshadow -Wsign-compare
@@ -321,8 +454,9 @@ target_compile_options(libkicad_kicad_flags INTERFACE
     -Wpessimizing-move -Wredundant-move -fPIC -fvisibility=hidden
     -fvisibility-inlines-hidden -ftrivial-auto-var-init=zero
     "-include${KICAD_SOURCE_ROOT}/include/import_export.h")
+endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC)
     target_compile_options(libkicad_kicad_flags INTERFACE
         -Winconsistent-missing-override -Wmismatched-tags -fstandalone-debug -Wno-psabi)
 endif()

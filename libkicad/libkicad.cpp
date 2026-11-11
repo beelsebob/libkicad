@@ -12,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <numbers>
 #include <optional>
 #include <system_error>
 #include <algorithm>
@@ -1042,7 +1043,7 @@ RawAllTracksResult allTracksRaw(BoardState& state) {
             appendSegment(track, exactStart - auxOrigin, exactEnd - auxOrigin);
             continue;
         }
-        constexpr double maxStepRadians = M_PI / 36.0; // five degrees
+        constexpr double maxStepRadians = std::numbers::pi / 36.0; // five degrees
         const int pieceCount = std::max(1, static_cast<int>(std::ceil(std::abs(sweep) / maxStepRadians)));
         const double startAngle = std::atan2(static_cast<double>(exactStart.y - center.y),
                                              static_cast<double>(exactStart.x - center.x));

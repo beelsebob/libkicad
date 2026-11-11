@@ -23,6 +23,25 @@ Given a `.kicad_pro` and `.kicad_pcb`, a `libkicad::Board` answers:
 Coordinates are in millimetres relative to the board's auxiliary origin (the frame `kicad-cli` uses
 with `--use-drill-file-origin`).
 
+## Backends
+
+The same API has two implementations, chosen with the CMake option `LIBKICAD_BACKEND`:
+
+- **`kicad-source`** (the default on macOS and Linux) — described above: links KiCad's own C++
+  internals, so it needs a KiCad source build matching `submodules/kicad`.
+- **`stock`** (the default on Windows) — reads boards through an installed KiCad instead: a small
+  bridge script (`libkicad/stock/kicad_bridge.py`, compiled into the library) runs under KiCad's own
+  Python and its `pcbnew` module, and simulation models come from `kicad-cli`'s netlists. Nothing
+  of KiCad is built or linked. It finds the newest KiCad in the platform's standard location;
+  `LIBKICAD_KICAD_PYTHON` and `LIBKICAD_KICAD_CLI` override that. Every query makes the same KiCad
+  calls as the source backend, so results match; the one thing it doesn't do yet is
+  `exportComponentModels()`.
+
+  KiCad's Python (SWIG) bindings are deprecated in favour of its IPC API. Only the bridge script
+  talks to KiCad, behind a small JSON contract with `libkicad/stock/libkicad_stock.cpp`, so moving
+  it to the IPC API — once a KiCad release ships the headless `kicad-cli api-server` — doesn't
+  touch the C++ side.
+
 ## Usage
 
 ```cpp
